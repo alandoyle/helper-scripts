@@ -1,0 +1,137 @@
+#!/bin/bash
+#
+# Configurable ZRAM installer
+#
+################################################################################
+# Create scripts
+#
+cat << EOF > /usr/bin/zram-start
+#!/bin/sh
+#
+# Setup ZRAM swap
+#
+################################################################################
+NUM_DEVICES=1
+COMP_MODE=lz4
+#
+# Load configuration file (if it exists)
+#
+[ -f /etc/default/zram ] && . /etc/default/zram
+
+################################################################################
+# Calculate number of ZRAM devices
+#
+if [ \$NUM_DEVICES -eq 0 ] ; then
+    NUM_DEVICES=\$(grep -c processor /proc/cpuinfo)
+fi
+
+################################################################################
+# Load the ZRAM module
+#
+modprobe zram num_devices=\$NUM_DEVICES
+sleep 5
+
+################################################################################
+# Calculate memory to use for ZRAM (default: 1/2 of RAM)
+#
+if [ "\$FIXED_MEM" = "0" ] ; then
+    _totalmem=\`LC_ALL=C free --kilo | grep -e "^Mem:" | sed -e 's/^Mem: *//' -e 's/  *.*//'\`
+    FIXED_MEM=\$((_totalmem / 2 * 1024))
+fi
+
+################################################################################
+# Calculate memory per device for ZRAM
+#
+MEM_CHUNK=\$((\$FIXED_MEM / \$NUM_DEVICES))
+
+echo "Setting up \$NUM_DEVICES ZRAM device(s) (\$MEM_CHUNK kb each) using \$COMP_MODE"
+
+################################################################################
+# Initialize the devices
+#
+for i in \$(seq 1 \${NUM_DEVICES}); do
+    DEVNUM=\$((i - 1))
+    echo "Setting up /dev/zram\${DEVNUM} using \${COMP_MODE}"
+    zramctl -a \${COMP_MODE} -s \${MEM_CHUNK} /dev/zram\${DEVNUM}
+    mkswap /dev/zram\${DEVNUM}
+    swapon -p 5 /dev/zram\${DEVNUM}
+done
+EOF
+
+cat << EOF > /usr/bin/zram-stop
+#!/bin/sh
+#
+# Free up ZRAM swap
+#
+################################################################################
+
+if DEVICES=\$(grep zram /proc/swaps | awk '{print \$1}'); then
+  for i in \$DEVICES; do
+    echo "Stopping \$i"
+    swapoff \$i
+  done
+fi
+
+################################################################################
+# Unload the ZRAM module
+#
+rmmod zram
+
+EOF
+
+################################################################################
+# Create config
+#
+cat << EOF > /etc/default/zram
+#
+# ZRAM Configuration Options
+#
+#
+# Number of split the ZRAM swap into.
+#   If set to 0 the CPU Core count will be used to split the ZRAM swap.
+#
+NUM_DEVICES=1
+#
+# Compression method
+#   lzo lzo-rle lz4 lz4hc 842 zstd
+#
+COMP_MODE=lz4
+#
+# Fixed memory to allocate
+#   If 0 then 1/2 system RAM is used
+#   Format sizes like: 100M 250M 1.5G 2G
+#
+FIXED_MEM=0
+EOF
+
+################################################################################
+# Set permissions
+#
+chmod a+x /usr/bin/zram-start
+chmod a+x /usr/bin/zram-stop
+chmod 600 /etc/default/zram
+
+################################################################################
+# Create systemd service
+#
+cat << EOF > /usr/lib/systemd/system/zram-swap.service
+[Unit]
+
+Description=ZRAM Swap service
+
+[Service]
+ExecStart=/usr/bin/zram-start
+ExecStop=/usr/bin/zram-stop
+Type=oneshot
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+################################################################################
+# Install service
+#
+systemctl daemon-reload
+systemctl enable zram-swap
+systemctl start zram-swap
