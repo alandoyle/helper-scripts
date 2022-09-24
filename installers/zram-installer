@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Configurable ZRAM installer
+# Configurable zRAM installer
 #
 ################################################################################
 # Create scripts
@@ -8,7 +8,7 @@
 cat << EOF > /usr/bin/zram-start
 #!/bin/sh
 #
-# Setup ZRAM swap
+# Setup zRAM swap
 #
 ################################################################################
 NUM_DEVICES=1
@@ -19,14 +19,14 @@ COMP_MODE=lz4
 [ -f /etc/default/zram ] && . /etc/default/zram
 
 ################################################################################
-# Calculate number of ZRAM devices
+# Calculate number of zRAM devices
 #
 if [ \$NUM_DEVICES -eq 0 ] ; then
     NUM_DEVICES=\$(grep -c processor /proc/cpuinfo)
 fi
 
 ################################################################################
-# Load the ZRAM module
+# Load the zRAM module
 #
 modprobe zram num_devices=\$NUM_DEVICES
 sleep 5
@@ -74,7 +74,7 @@ EOF
 cat << EOF > /usr/bin/zram-stop
 #!/bin/sh
 #
-# Free up ZRAM swap
+# Free up zRAM swap
 #
 ################################################################################
 
@@ -86,7 +86,7 @@ if DEVICES=\$(grep zram /proc/swaps | awk '{print \$1}'); then
 fi
 
 ################################################################################
-# Unload the ZRAM module
+# Unload the zRAM module
 #
 rmmod zram
 
@@ -98,11 +98,11 @@ EOF
 if [ ! -f /etc/default/zram ] ; then
     cat << EOF > /etc/default/zram
 #
-# ZRAM Configuration Options
+# zRAM Configuration Options
 #
 #
-# Number of split the ZRAM swap into.
-#   If set to 0 the CPU Core count will be used to split the ZRAM swap.
+# Number of split the zRAM swap into.
+#   If set to 0 the CPU Core count will be used to split the zRAM swap.
 #
 NUM_DEVICES=1
 #
