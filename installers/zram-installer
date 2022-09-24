@@ -37,12 +37,25 @@ sleep 5
 if [ "\$FIXED_MEM" = "0" ] ; then
     _totalmem=\`LC_ALL=C free --kilo | grep -e "^Mem:" | sed -e 's/^Mem: *//' -e 's/  *.*//'\`
     FIXED_MEM=\$((_totalmem / 2 * 1024))
+    MEM_CHUNK=\$((\$FIXED_MEM / \$NUM_DEVICES))
+else
+    # Find last char
+    LAST_CHAR=\$(echo -n "\${FIXED_MEM}"|tail -c1)
+    case \$LAST_CHAR in
+        G)  echo "Gigs"
+            FIXED_MEM=\$(echo -n "\${FIXED_MEM}"|tr -dc '[. [:digit:]]')
+            MEM_CHUNK=\$(echo "scale=0;\$FIXED_MEM*1073741824/\$NUM_DEVICES" |bc)
+            ;;
+        M)  echo "Megs"
+            FIXED_MEM=\$(echo -n "\${FIXED_MEM}"|tr -dc '[. [:digit:]]')
+            #MEM_CHUNK=\$((\$FIXED_MEM * 1048576 / \$NUM_DEVICES))
+            MEM_CHUNK=\$(echo "scale=0;\$FIXED_MEM*1048576/\$NUM_DEVICES" |bc)
+            ;;
+        *)  echo "ERROR: Invalid FIXED_MEM value (\$FIXED_MEM)"
+            exit 99
+            ;;
+    esac
 fi
-
-################################################################################
-# Calculate memory per device for ZRAM
-#
-MEM_CHUNK=\$((\$FIXED_MEM / \$NUM_DEVICES))
 
 echo "Setting up \$NUM_DEVICES ZRAM device(s) (\$MEM_CHUNK kb each) using \$COMP_MODE"
 
@@ -82,7 +95,8 @@ EOF
 ################################################################################
 # Create config
 #
-cat << EOF > /etc/default/zram
+if [ ! -f /etc/default/zram ] ; then
+    cat << EOF > /etc/default/zram
 #
 # ZRAM Configuration Options
 #
@@ -103,12 +117,13 @@ COMP_MODE=lz4
 #
 FIXED_MEM=0
 EOF
+fi
 
 ################################################################################
 # Set permissions
 #
-chmod a+x /usr/bin/zram-start
-chmod a+x /usr/bin/zram-stop
+chmod 755 /usr/bin/zram-start
+chmod 755 /usr/bin/zram-stop
 chmod 600 /etc/default/zram
 
 ################################################################################
@@ -117,7 +132,7 @@ chmod 600 /etc/default/zram
 cat << EOF > /usr/lib/systemd/system/zram-swap.service
 [Unit]
 
-Description=ZRAM Swap service
+Description=zRAM Swap service
 
 [Service]
 ExecStart=/usr/bin/zram-start
