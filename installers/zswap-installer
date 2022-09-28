@@ -97,9 +97,9 @@ fi
 
 ################################################################################
 
-echo -e "Zswap Configuration\n"
+echo "Zswap Configuration\n"
 grep -R . /sys/module/zswap/parameters|cut -d/ -f6|awk -F: '{ printf "\t%-24s\t%s\n", \$1, \$2 }'
-echo -e "\nZswap Statistics\n"
+echo "\nZswap Statistics\n"
 grep -R . /sys/kernel/debug/zswap/|cut -d/ -f6|awk -F: '{ printf "\t%-24s\t%s\n", \$1, \$2 }'
 echo ""
 
