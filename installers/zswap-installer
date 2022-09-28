@@ -1,0 +1,178 @@
+#!/bin/bash
+#
+# zswap-installer is a Configurable Zswap installer.
+# 
+# Copyright (C) 2022 Alan Doyle
+#
+# https://github.com/alandoyle/helper-scripts/
+# 
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+# 
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see http://www.gnu.org/licenses/.
+#
+################################################################################
+#
+# Root check
+#
+if [ `id -u` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+
+################################################################################# Create scripts
+#
+# Create scripts
+#
+cat << EOF > /usr/sbin/init-zswap
+#!/bin/sh
+#
+# Initialise Zswap
+# 
+# Copyright (C) 2022 Alan Doyle
+#
+# https://github.com/alandoyle/helper-scripts/
+#
+################################################################################
+#
+# Root check
+#
+if [ \`id -u\` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+
+################################################################################
+#
+# Default settings
+#
+ENABLED=1
+COMPRESSOR=lz4
+ACCEPT_THRESHOLD_PERCENT=90
+MAX_POOL_PERCENT=20
+SAME_FILLED_PAGES=1
+ZPOOL=zbud
+#
+# Load configuration file (if it exists)
+#
+[ -f /etc/default/zswap ] && . /etc/default/zswap
+
+################################################################################
+#
+# Initialise Zswap
+#
+echo \$COMPRESSOR > /sys/module/zswap/parameters/compressor
+echo \$ZPOOL > /sys/module/zswap/parameters/zpool
+echo \$MAX_POOL_PERCENT > /sys/module/zswap/parameters/max_pool_percent
+echo \$ACCEPT_THRESHOLD_PERCENT > /sys/module/zswap/parameters/accept_threshold_percent
+echo \$SAME_FILLED_PAGES > /sys/module/zswap/parameters/same_filled_pages_enabled
+echo \$ENABLED > /sys/module/zswap/parameters/enabled
+
+EOF
+
+cat << EOF > /usr/bin/zswap-stats
+#!/bin/sh
+#
+# Show Zswap stats
+#
+# Copyright (C) 2022 Alan Doyle
+#
+# https://github.com/alandoyle/helper-scripts/
+#
+################################################################################
+#
+# Root check
+#
+if [ \`id -u\` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+
+################################################################################
+
+echo -e "Zswap Configuration\n"
+grep -R . /sys/module/zswap/parameters|cut -d/ -f6|awk -F: '{ printf "\t%-24s\t%s\n", \$1, \$2 }'
+echo -e "\nZswap Statistics\n"
+grep -R . /sys/kernel/debug/zswap/|cut -d/ -f6|awk -F: '{ printf "\t%-24s\t%s\n", \$1, \$2 }'
+echo ""
+
+EOF
+
+################################################################################
+# Create config
+#
+if [ ! -f /etc/default/zswap ] ; then
+    cat << EOF > /etc/default/zswap
+#
+# Zswap Configuration Options
+#
+# See https://www.kernel.org/doc/Documentation/vm/zswap.txt
+#
+################################################################################
+#
+# Enabled flag 0/1
+#
+ENABLED=1
+#
+# Compression method
+#   lzo lzo-rle lz4 zstd
+#
+COMPRESSOR=lz4
+#
+# If pool utilisation is over this percentage, refuse to take new pages
+# (prevents swap thrashing which can kill performance)
+#
+ACCEPT_THRESHOLD_PERCENT=90
+#
+# The maximum percentage of RAM that the pool can occupy
+#
+MAX_POOL_PERCENT=20
+#
+# Should same-value handling be used to reduce pool storage use where
+# possible?
+#
+SAME_FILLED_PAGES=1
+#
+# Zswap makes use of zpool for the managing the compressed memory pool.
+#   zbud z3fold zsmalloc
+#
+ZPOOL=zbud
+
+EOF
+fi
+
+################################################################################
+# Set permissions
+#
+chmod 755 /usr/bin/zswap-stats
+chmod 755 /usr/sbin/init-zswap
+chmod 644 /etc/default/zswap
+
+
+################################################################################
+# Create systemd service
+#
+cat << EOF > /usr/lib/systemd/system/zswap.service
+[Unit]
+Description=ZSwap service
+[Service]
+ExecStart=/usr/sbin/init-zswap
+Type=oneshot
+RemainAfterExit=true
+[Install]
+WantedBy=multi-user.target
+EOF
+
+################################################################################
+# Install service
+#
+systemctl daemon-reload
+systemctl enable zswap
+systemctl start zswap
