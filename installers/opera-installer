@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# opera-installer is a simple installer for the Opera browser.
+# 
+# Copyright (C) 2022 Alan Doyle
+#
+# https://github.com/alandoyle/helper-scripts/
+#
+################################################################################
+
+if [ `id -u` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+
+apt install apt-transport-https curl -y
+curl -fsSL https://deb.opera.com/archive.key | gpg --dearmor -o /usr/share/keyrings/opera.gpg
+echo deb [arch=amd64 signed-by=/usr/share/keyrings/opera.gpg] https://deb.opera.com/opera-stable/ stable non-free | tee /etc/apt/sources.list.d/opera.list
+apt update
+apt install opera-stable -y
