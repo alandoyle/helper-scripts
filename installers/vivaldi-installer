@@ -7,12 +7,18 @@
 # https://github.com/alandoyle/helper-scripts/
 #
 ################################################################################
-
+#
+# Root check
+#
 if [ `id -u` -ne 0 ] ; then
     echo "ERROR: This script needs to be run as root or using sudo."
     exit 99
 fi
 
+################################################################################
+#
+# Setup
+#
 apt install apt-transport-https curl -y
 curl -fsSL https://repo.vivaldi.com/archive/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/vivaldi.gpg
 echo deb [arch=amd64 signed-by=/usr/share/keyrings/vivaldi.gpg] https://repo.vivaldi.com/archive/deb/ stable main | tee /etc/apt/sources.list.d/vivaldi.list
