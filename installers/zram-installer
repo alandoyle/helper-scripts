@@ -156,7 +156,7 @@ fi
 #
 chmod 755 /usr/bin/zram-start
 chmod 755 /usr/bin/zram-stop
-chmod 600 /etc/default/zram
+chmod 644 /etc/default/zram
 
 ################################################################################
 # Create systemd service
