@@ -26,3 +26,15 @@ apt update
 apt install docker-ce -y
 usermod -aG docker ${USER}
 
+
+LOCATION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest \
+| grep -v sha256 \
+| grep -i "browser_download_url.*`uname -s`-`uname -p`" \
+| awk '{ print $2 }' \
+| sed 's/,$//' \
+| sed 's/"//g' )
+
+curl -sSL ${LOCATION} -o /usr/libexec/docker/cli-plugins/docker-compose
+chmod a+x /usr/libexec/docker/cli-plugins/docker-compose
+
+docker compose version
