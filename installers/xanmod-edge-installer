@@ -21,6 +21,6 @@ fi
 #
 apt install apt-transport-https curl -y
 curl -fsSL https://dl.xanmod.org/gpg.key | gpg --dearmor -o /usr/share/keyrings/xanmod-kernel.gpg
-echo "deb [signed-by=/usr/share/keyrings/xanmod-kernel.gpg arch=amd64] http://deb.xanmod.org releases main"| tee /etc/apt/sources.list.d/xanmod-kernel.list
+echo "deb [signed-by=/usr/share/keyrings/xanmod-kernel.gpg arch=amd64] https://deb.xanmod.org releases main"| tee /etc/apt/sources.list.d/xanmod-kernel.list
 apt update
 apt install linux-xanmod-edge -y
