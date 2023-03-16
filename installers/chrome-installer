@@ -20,7 +20,12 @@ fi
 # Setup
 #
 apt install apt-transport-https curl -y
+# Remove amy old GPG keys
+[ -f /usr/share/keyrings/google-chrome-keyring.gpg ] && rm -f /usr/share/keyrings/google-chrome-keyring.gpg
+# Add new key
 curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg
+# Create repository list
 echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list
+# Update and install
 apt update
 apt install google-chrome-stable -y
