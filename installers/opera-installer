@@ -20,6 +20,7 @@ fi
 # Setup
 #
 apt install apt-transport-https curl -y
+[ -f /usr/share/keyrings/opera.gpg ] && rm -f /usr/share/keyrings/opera.gpg
 curl -fsSL https://deb.opera.com/archive.key | gpg --dearmor -o /usr/share/keyrings/opera.gpg
 echo deb [arch=amd64 signed-by=/usr/share/keyrings/opera.gpg] https://deb.opera.com/opera-stable/ stable non-free | tee /etc/apt/sources.list.d/opera-stable.list
 apt update
