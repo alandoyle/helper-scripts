@@ -20,6 +20,7 @@ fi
 # Setup
 #
 apt install apt-transport-https ca-certificates curl software-properties-common -y
+[ -f /usr/share/keyrings/vscode-archive-keyring.gpg ] && rm -f /usr/share/keyrings/vscode-archive-keyring.gpg
 curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/vscode-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/vscode-archive-keyring.gpg] https://packages.microsoft.com/repos/vscode stable main"  | tee /etc/apt/sources.list.d/vscode.list > /dev/null
 apt update
