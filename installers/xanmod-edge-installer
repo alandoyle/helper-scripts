@@ -20,6 +20,7 @@ fi
 # Setup
 #
 apt install apt-transport-https curl -y
+[ -f /usr/share/keyrings/xanmod-kernel.gpg ] && rm -f /usr/share/keyrings/xanmod-kernel.gpg
 curl -fsSL https://dl.xanmod.org/gpg.key | gpg --dearmor -o /usr/share/keyrings/xanmod-kernel.gpg
 echo "deb [signed-by=/usr/share/keyrings/xanmod-kernel.gpg arch=amd64] https://deb.xanmod.org releases main"| tee /etc/apt/sources.list.d/xanmod-kernel.list
 apt update
