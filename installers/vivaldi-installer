@@ -20,6 +20,7 @@ fi
 # Setup
 #
 apt install apt-transport-https curl -y
+[ -f /usr/share/keyrings/vivaldi.gpg ] && rm -f /usr/share/keyrings/vivaldi.gpg
 curl -fsSL https://repo.vivaldi.com/archive/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/vivaldi.gpg
 echo deb [arch=amd64 signed-by=/usr/share/keyrings/vivaldi.gpg] https://repo.vivaldi.com/archive/deb/ stable main | tee /etc/apt/sources.list.d/vivaldi.list
 apt update
