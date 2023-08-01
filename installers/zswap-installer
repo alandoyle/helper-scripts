@@ -1,20 +1,20 @@
 #!/bin/bash
 #
-# zswap-installer is a Configurable Zswap installer.
-# 
+# zswap-installer is a Configurable ZSwap installer.
+#
 # Copyright (C) 2022 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
-# 
+#
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation, either version 3 of the License, or (at your option) any later
 # version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see http://www.gnu.org/licenses/.
 #
@@ -34,8 +34,8 @@ fi
 cat << EOF > /usr/sbin/init-zswap
 #!/bin/sh
 #
-# Initialise Zswap
-# 
+# Initialise ZSwap
+#
 # Copyright (C) 2022 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
@@ -66,7 +66,7 @@ ZPOOL=zbud
 
 ################################################################################
 #
-# Initialise Zswap
+# Initialise ZSwap
 #
 echo \$COMPRESSOR > /sys/module/zswap/parameters/compressor
 echo \$ZPOOL > /sys/module/zswap/parameters/zpool
@@ -80,7 +80,7 @@ EOF
 cat << EOF > /usr/bin/zswap-stats
 #!/bin/sh
 #
-# Show Zswap stats
+# Show ZSwap stats
 #
 # Copyright (C) 2022 Alan Doyle
 #
@@ -97,7 +97,7 @@ fi
 
 ################################################################################
 
-echo "Zswap Configuration\n"
+echo "ZSwap Configuration\n"
 grep -R . /sys/module/zswap/parameters|cut -d/ -f6|awk -F: '{ printf "\t%-24s\t%s\n", \$1, \$2 }'
 echo "\nZswap Statistics\n"
 grep -R . /sys/kernel/debug/zswap/|cut -d/ -f6|awk -F: '{ printf "\t%-24s\t%s\n", \$1, \$2 }'
@@ -111,7 +111,7 @@ EOF
 if [ ! -f /etc/default/zswap ] ; then
     cat << EOF > /etc/default/zswap
 #
-# Zswap Configuration Options
+# ZSwap Configuration Options
 #
 # See https://www.kernel.org/doc/Documentation/vm/zswap.txt
 #
@@ -140,7 +140,7 @@ MAX_POOL_PERCENT=20
 #
 SAME_FILLED_PAGES=1
 #
-# Zswap makes use of zpool for the managing the compressed memory pool.
+# ZSwap makes use of zpool for the managing the compressed memory pool.
 #   zbud z3fold zsmalloc
 #
 ZPOOL=zbud
