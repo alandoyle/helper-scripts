@@ -1,0 +1,159 @@
+#!/bin/bash
+#
+# pihole-installer is a simple installer for the PiHole with a Cloudflare
+# backend connecting over a cloudflare tunnel to Cloudflare's DoH (DNS over
+# HTTPS) servers.
+#
+# It also supports a custom hosts file (/etc/hosts.lan) which it will import
+# into /etc/pihole/custom.list
+# 
+# Copyright (C) 2022-2023 Alan Doyle
+#
+# https://github.com/alandoyle/helper-scripts/
+#
+################################################################################
+#
+# Root check
+#
+if [ `id -u` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+
+################################################################################
+# Install cloudflared
+if [ ! -f /usr/sbin/cloudflared ] ; then
+        ########################################################################
+        # Add cloudflared user
+        useradd -s /usr/sbin/nologin -r -M cloudflared
+        ########################################################################
+        # Add cloudflared configuration
+        cat << EOF > /etc/default/cloudflared
+# Commandline args for cloudflared
+CLOUDFLARED_OPTS=--port 5053 --upstream https://1.1.1.1/dns-query --upstream https://1.0.0.1/dns-query
+EOF
+        ########################################################################
+        # Generate systemd unit file
+        cat << EOF > /lib/systemd/system/cloudflared.service
+[Unit]
+Description=cloudflared DNS over HTTPS proxy
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+User=cloudflared
+EnvironmentFile=/etc/default/cloudflared
+ExecStart=/usr/sbin/cloudflared proxy-dns \$CLOUDFLARED_OPTS
+Restart=on-failure
+RestartSec=10
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        ########################################################################
+        # Download latest cloudflared binary
+        # From
+        if [ "`uname -m`" = "armv7l" ] ; then
+            echo "ARM binary"
+            wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm -O cloudflared
+        elif [ "`uname -m`" = "aarch64" ] ; then
+            echo "ARM64 binary"
+            wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 -O cloudflared
+        else
+            echo "AMD64 binary"
+            wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O cloudflared
+        fi
+        mv cloudflared /usr/sbin/
+        chown cloudflared:cloudflared /etc/default/cloudflared
+        chown cloudflared:cloudflared /usr/sbin/cloudflared
+        chmod a+x /usr/sbin/cloudflared
+        ########################################################################
+        # Enable systemd service
+        systemctl enable cloudflared
+        systemctl start cloudflared
+fi
+
+################################################################################
+# Setup Pi-Hole
+
+if [ ! -f /usr/local/bin/pihole ] ; then
+        ########################################################################
+        # Install Pi-Hole
+        PIHOLE_SKIP_OS_CHECK=true bash -c "$(curl -sSfL https://install.pi-hole.net)"
+fi
+
+################################################################################
+# Basic Pi-Hole configuration
+pihole -a -p
+#pihole -w analytics.twitter.com dl.delivery.mp.microsoft.com geo-prod.do.dsp.mp.microsoft.com spclient.wg.spotify.com
+sleep 5
+
+################################################################################
+# Configure Pi-Hole to use cloudflared
+cp /etc/pihole/setupVars.conf /etc/pihole/setupVars.conf.$$
+cat /etc/pihole/setupVars.conf.$$ | grep -v PIHOLE_DNS_ > /etc/pihole/setupVars.conf
+rm /etc/pihole/setupVars.conf.$$
+echo PIHOLE_DNS_1=127.0.0.1#5053 >> /etc/pihole/setupVars.conf
+
+cp /etc/dnsmasq.d/01-pihole.conf /etc/dnsmasq.d/01-pihole.conf.$$
+cat /etc/dnsmasq.d/01-pihole.conf.$$ | grep -v server= > /etc/dnsmasq.d/01-pihole.conf
+rm /etc/dnsmasq.d/01-pihole.conf.$$
+echo server=127.0.0.1#5053 >> /etc/dnsmasq.d/01-pihole.conf
+
+################################################################################
+# Create a 'genlist' command to export /etc/hosts.lan to Pi-Hole custom.list
+cat << EOF > /usr/local/bin/genlist
+#!/usr/bin/env bash
+#
+#
+
+HOST_FILE=/etc/hosts.lan
+
+# Check for override configuration
+[ -f /etc/default/genlist ] && . /etc/default/genlist
+
+# Check if custom hosts file exists, if not then that's OK too.
+[ ! -f \${HOST_FILE} ] && exit 0
+
+# Start building the custom.list
+OUTPUT_FILE=/etc/pihole/custom.list
+CUSTOM_HOSTS=\`cat \${HOST_FILE}|sed '/^[[:space:]]*\$/d'|sed '/^#/d'\`
+echo "[+] Building Custom Host Entries for Pi-Hole"
+echo "  [i] Source: \${HOST_FILE}"
+echo "  [i] Destination: \${OUTPUT_FILE}"
+
+while IFS= read -r line
+do
+
+   IFS=' ' read -r -a array <<< "\$line"
+   IPADDRESS=\${array[0]}
+   unset "array[0]"
+   for HOSTNAME in "\${array[@]}"
+   do
+       echo "\$IPADDRESS \$HOSTNAME"
+   done
+done < <(printf '%s\n' "\$CUSTOM_HOSTS") > \${OUTPUT_FILE}
+HOSTCOUNT=\`cat \${OUTPUT_FILE} | wc -l\`
+echo "  [i] Added \${HOSTCOUNT} custom entries"
+echo "[+] Refreshing Pi-Hole"
+pihole -g
+
+EOF
+chmod a+x /usr/local/bin/genlist
+/usr/local/bin/genlist
+
+# add cron rule
+CRON='/etc/cron.hourly/genlist'
+if [ -d /etc/cron.hourly ] ; then
+    cat << EOF > "${CRON}"
+#!/usr/bin/env bash
+/usr/local/bin/genlist > /var/log/genlist.log
+EOF
+    chmod +x "${CRON}"
+fi
+
+
+################################################################################
+# Reboot
+reboot
