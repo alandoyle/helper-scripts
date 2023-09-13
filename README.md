@@ -14,3 +14,4 @@ Scripts included
 - Xanmod Kernel installer
 - Docker instller
 - VSCode installer
+- PiHole installer
