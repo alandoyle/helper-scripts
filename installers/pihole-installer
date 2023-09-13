@@ -11,6 +11,10 @@
 #
 # https://github.com/alandoyle/helper-scripts/
 #
+# Install instructions:
+#
+# sudo bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/installers/pihole-installer)"
+#
 ################################################################################
 #
 # Root check
