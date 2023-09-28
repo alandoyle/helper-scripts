@@ -91,6 +91,7 @@ fi
 # Basic Pi-Hole configuration
 pihole -a -p
 #pihole -w analytics.twitter.com dl.delivery.mp.microsoft.com geo-prod.do.dsp.mp.microsoft.com spclient.wg.spotify.com
+#pihole -b activity.windows.com msedge.net assets.msn.com edge.microsoft.com
 sleep 5
 
 ################################################################################
