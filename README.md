@@ -2,7 +2,11 @@
 
 A small collection of helper scripts for Ubuntu 22.04
 
-Scripts included
+System scripts included
+
+- Enable "Super" sudo (passwordless sudo for members of the `sudo` group)
+
+Installer scripts included
 
 - Configurable zRAM installer
 - Configurable Zswap installer
