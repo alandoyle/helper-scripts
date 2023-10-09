@@ -46,7 +46,7 @@ function download_local_copy()
 #
 # 'sudo' check
 #
-function sudo_check()
+function check_sudo()
 {
     SUDO_BINARY=`type -p sudo 2>/dev/null`
     if [ -z "${SUDO_BINARY}" -o ! -f "${SUDO_BINARY}" ] ; then
