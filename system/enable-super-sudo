@@ -1,0 +1,143 @@
+#!/bin/bash
+#
+# enable-super-sudo is a simple command to enable paswordless sudo for all
+# sudo users. If no sudo users are found it'll prompt to creat one.
+#
+# Copyright (C) 2022-2023 Alan Doyle
+#
+# https://github.com/alandoyle/helper-scripts/
+#
+# Install instructions:
+#
+# sudo bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/enable-super-sudo)"
+#
+#set -x
+################################################################################
+#
+# Variables
+#
+CREATE_SUDO_USER=N
+################################################################################
+#
+# Root check
+#
+function check_root()
+{
+    if [ `id -u` -ne 0 ] ; then
+        echo "ERROR: This script needs to be run as root or using sudo."
+        exit 99
+    fi
+}
+
+################################################################################
+#
+# Download a copy to /usr/local/bin so it can be re-run without needing to
+# re-download all the time.
+#
+function download_local_copy()
+{
+    if [ ! -f /usr/local/bin/enable-super-sudo ] ; then
+        wget -qLO /usr/local/bin/enable-super-sudo https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/enable-super-sudo
+        chmod a+x /usr/local/bin/enable-super-sudo
+    fi
+}
+
+################################################################################
+#
+# 'sudo' check
+#
+function sudo_check()
+{
+    SUDO_BINARY=`type -p sudo 2>/dev/null`
+    if [ -z "${SUDO_BINARY}" -o ! -f "${SUDO_BINARY}" ] ; then
+        echo "'sudo' not found! Installing..."
+        apt-get update >/dev/null 2>&1
+        apt-get -y install sudo >/dev/null 2>&1
+    fi
+    unset SUDO_BINARY
+}
+
+################################################################################
+#
+# Create "Super sudo" file
+#
+function create_super_sudo()
+{
+    cat << EOF > /etc/sudoers.d/00-super-sudo
+# Allow members of group sudo to execute any command
+%sudo ALL=(ALL) NOPASSWD:ALL
+EOF
+    chmod 400 /etc/sudoers.d/00-super-sudo
+}
+
+################################################################################
+#
+# Check for sudo users
+#
+function check_sudo_users()
+{
+    SUDO_USERS=`cat /etc/group | grep sudo | cut -d: -f4`
+    if [ -z "${SUDO_USERS}" ] ; then
+        echo -ne "No 'sudo' users found!\nCreate one (Y/N)? "
+        read ANS
+        CREATE_SUDO_USER=`echo ${ANS}|cut -c1|tr [:lower:] [:upper:]`
+    fi
+}
+
+################################################################################
+#
+# Add a sudo users
+#
+function create_sudo_user()
+{
+    if [ "${CREATE_SUDO_USER}" != "Y" ] ; then
+        return
+    fi
+
+    SUDO_USERNAME=""
+    while [ -z "${SUDO_USERNAME}" ]
+    do
+        echo -n "Enter a username: "
+        read SUDO_USERNAME
+    done
+    adduser ${SUDO_USERNAME}
+    usermod -aG sudo ${SUDO_USERNAME}
+
+    unset SUDO_USERNAME
+}
+
+################################################################################
+#
+# Randomize 'root' password
+#
+function randomize_root_password()
+{
+    echo -n "Do you want to randomize the root password? (Y/N) "
+    read ANS
+    RANDOMIZE_ROOT_PASSWORD=`echo ${ANS}|cut -c1|tr [:lower:] [:upper:]`
+
+    if [ "${RANDOMIZE_ROOT_PASSWORD}" = "Y" ] ; then
+        echo "Randomizing the root password"
+        RANDOM_PASSWORD=`openssl rand -base64 32`
+        echo "root:${RANDOM_PASSWORD}" | chpasswd
+        unset RANDOM_PASSWORD
+    fi
+
+    unset RANDOMIZE_ROOT_PASSWORD
+}
+
+################################################################################
+#
+# Main loop
+#
+
+check_root
+download_local_copy
+check_sudo
+create_super_sudo
+check_sudo_users
+create_sudo_user
+randomize_root_password
+
+#
+################################################################################
