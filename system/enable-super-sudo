@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # enable-super-sudo is a simple command to enable paswordless sudo for all
-# sudo users. If no sudo users are found it'll prompt to creat one.
+# sudo users. If no sudo users are found it'll prompt to create one.
 #
 # Copyright (C) 2022-2023 Alan Doyle
 #
@@ -9,7 +9,7 @@
 #
 # Install instructions:
 #
-# sudo bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/enable-super-sudo)"
+#   bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/enable-super-sudo)"
 #
 #set -x
 ################################################################################
