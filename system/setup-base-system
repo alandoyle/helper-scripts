@@ -133,6 +133,8 @@ function usedg() {
 }
 
 # Docker support
+alias dkup='docker compose up -d'
+alias dkdn='docker compose down'
 alias dkps='docker ps --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Ports}}"'
 alias dkrs='docker compose down && docker compose up -d'
 function dkxc() {
