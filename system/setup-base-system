@@ -59,6 +59,7 @@ cat <<EOF >/etc/bash.aliases
 alias dfspace="df -hT -x udev -x tmpfs -x cgmfs -x snap -x devtmpfs -x fuse -x overlay"
 alias pg="less"
 alias cls="clear"
+alias btop="btop --utf-force"
 
 # Change directory aliases
 alias home='cd ~'
