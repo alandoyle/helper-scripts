@@ -112,6 +112,12 @@ function create_sudo_user()
 #
 function randomize_root_password()
 {
+    SUDO_USERS=`cat /etc/group | grep sudo | cut -d: -f4`
+    if [ -z "${SUDO_USERS}" ] ; then
+        return
+    fi
+
+    # Only randomize root password if there is a sudo user!
     echo -n "Do you want to randomize the root password? (Y/N) "
     read ANS
     RANDOMIZE_ROOT_PASSWORD=`echo ${ANS}|cut -c1|tr [:lower:] [:upper:]`
