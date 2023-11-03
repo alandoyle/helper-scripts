@@ -1,0 +1,165 @@
+#!/bin/bash
+#
+# pihole-installer is a simple installer for the PiHole with a Cloudflare
+# backend connecting over a cloudflare tunnel to Cloudflare's DoH (DNS over
+# HTTPS) servers.
+#
+# It also supports a custom hosts file (/etc/hosts.lan) which it will import
+# into /etc/pihole/custom.list
+# 
+# Copyright (C) 2022-2023 Alan Doyle
+#
+# https://github.com/alandoyle/helper-scripts/
+#
+# Install instructions:
+#
+# sudo bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/installers/pihole-quad9-installer)"
+#
+################################################################################
+#
+# Root check
+#
+if [ `id -u` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+
+################################################################################
+# Make sure `curl` is installed
+echo "Updating system (Please be patient)"
+apt-get update >/dev/null
+apt-get install curl -y >/dev/null
+
+################################################################################
+# Remove systemd-resolved
+echo "Removing systemd-resolved"
+systemctl stop systemd-resolved >/dev/null 2>&1
+systemctl disable systemd-resolved >/dev/null 2>&1
+systemctl mask systemd-resolved >/dev/null 2>&1
+
+################################################################################
+# Install and set up DNScrypt with Quad9 DNS
+echo "Installing 'DNScrypt'"
+apt-get install dnscrypt-proxy -y >/dev/null
+
+echo "Configuring 'DNScrypt'"
+sed -i 's/127.0.2.1:53/127.0.0.1:5335/g' /usr/lib/systemd/system/dnscrypt-proxy.socket > /dev/null
+cat <<EOF >/etc/dnscrypt-proxy/dnscrypt-proxy.toml
+# DNScrypt with Quad9 resolver
+listen_addresses = []
+server_names = ['quad9-dnscrypt-ip4-filter-pri']
+
+[query_log]
+  file = '/var/log/dnscrypt-proxy/query.log'
+
+[nx_log]
+  file = '/var/log/dnscrypt-proxy/nx.log'
+
+[sources.quad9-resolvers]
+  urls = ["https://quad9.net/dnscrypt/quad9-resolvers.md", "https://raw.githubusercontent.com/Quad9DNS/dnscrypt-settings/main/dnscrypt/quad9-resolvers.md"]
+  minisign_key = "RWQBphd2+f6eiAqBsvDZEBXBGHQBJfeG6G+wJPPKxCZMoEQYpmoysKUN"
+  cache_file = "quad9-resolvers.md"
+  refresh_delay = 72
+  prefix = "quad9-"
+EOF
+
+################################################################################
+# Setup Pi-Hole
+echo "Pre-configuring 'pi-hole'"
+[ ! -d /etc/pihole ] && mkdir -p /etc/pihole
+cat <<EOF >/etc/pihole/setupVars.conf
+PIHOLE_INTERFACE=eth0
+PIHOLE_DNS_1=127.0.0.1#5335
+PIHOLE_DNS_2=127.0.0.1#5335
+QUERY_LOGGING=true
+INSTALL_WEB_SERVER=true
+INSTALL_WEB_INTERFACE=true
+LIGHTTPD_ENABLED=true
+CACHE_SIZE=10000
+DNS_FQDN_REQUIRED=true
+DNS_BOGUS_PRIV=true
+DNSMASQ_LISTENING=local
+WEBPASSWORD=
+BLOCKING_ENABLED=true
+EOF
+
+########################################################################
+# Install Pi-Hole
+echo "Downloading 'pi-hole' installer"
+[ -f /run/shm/pihole-install.sh ] && rm -f /run/shm/pihole-install.sh
+curl -sSfL -o /run/shm/pihole-install.sh https://install.pi-hole.net
+if [ ! -f /run/shm/pihole-install.sh ] ; then
+	echo "ERROR: Unable to download pi-hole installer!"
+	exit 99
+fi
+chmod a+x /run/shm/pihole-install.sh
+echo "Installing 'pi-hole'"
+/run/shm/pihole-install.sh --unattended
+rm /run/shm/pihole-install.sh 
+
+################################################################################
+# Basic Pi-Hole configuration
+pihole -a -p
+#pihole -w analytics.twitter.com dl.delivery.mp.microsoft.com geo-prod.do.dsp.mp.microsoft.com spclient.wg.spotify.com
+#pihole -b activity.windows.com msedge.net assets.msn.com edge.microsoft.com
+sleep 5
+
+################################################################################
+# Create a 'genlist' command to export /etc/hosts.lan to Pi-Hole custom.list
+echo "Creating 'pi-hole' support files"
+cat << EOF > /usr/local/bin/genlist
+#!/usr/bin/env bash
+#
+#
+
+HOST_FILE=/etc/hosts.lan
+
+# Check for override configuration
+[ -f /etc/default/genlist ] && . /etc/default/genlist
+
+# Check if custom hosts file exists, if not then that's OK too.
+[ ! -f \${HOST_FILE} ] && exit 0
+
+# Start building the custom.list
+OUTPUT_FILE=/etc/pihole/custom.list
+CUSTOM_HOSTS=\`cat \${HOST_FILE}|sed '/^[[:space:]]*\$/d'|sed '/^#/d'\`
+echo "[+] Building Custom Host Entries for Pi-Hole"
+echo "  [i] Source: \${HOST_FILE}"
+echo "  [i] Destination: \${OUTPUT_FILE}"
+
+while IFS= read -r line
+do
+
+   IFS=' ' read -r -a array <<< "\$line"
+   IPADDRESS=\${array[0]}
+   unset "array[0]"
+   for HOSTNAME in "\${array[@]}"
+   do
+       echo "\$IPADDRESS \$HOSTNAME"
+   done
+done < <(printf '%s\n' "\$CUSTOM_HOSTS") > \${OUTPUT_FILE}
+HOSTCOUNT=\`cat \${OUTPUT_FILE} | wc -l\`
+echo "  [i] Added \${HOSTCOUNT} custom entries"
+echo "[+] Refreshing Pi-Hole"
+pihole -g
+
+EOF
+chmod a+x /usr/local/bin/genlist
+/usr/local/bin/genlist
+
+################################################################################
+# add cron rule
+echo "Adding cron entry"
+CRON='/etc/cron.hourly/genlist'
+if [ -d /etc/cron.hourly ] ; then
+    cat << EOF > "${CRON}"
+#!/usr/bin/env bash
+/usr/local/bin/genlist > /var/log/genlist.log
+EOF
+    chmod +x "${CRON}"
+fi
+
+
+################################################################################
+# Reboot
+reboot
