@@ -32,7 +32,7 @@ apt update
 #
 # Install docker and plugins
 #
-apt install docker-ce docker-compose-plugin docker-scan-plugin -y
+apt install docker-ce docker-compose-plugin docker-buildx-plugin -y
 
 ################################################################################
 #
