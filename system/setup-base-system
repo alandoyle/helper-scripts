@@ -2,7 +2,7 @@
 #
 # setup-base-system is a simple command to set up a base Ubuntu 22.04 server.
 #
-# Copyright (C) 2022-2023 Alan Doyle
+# Copyright (C) 2022-2024 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/main/system/setup-base-system
 #
@@ -20,8 +20,8 @@ fi
 #
 ################################################################################
 #
-echo "Setting 'needrestart' to AUTOMATIC"
 if [ -f /etc/needrestart/needrestart.conf ] ; then
+	echo "Setting 'needrestart' to AUTOMATIC"
 	sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
 fi
 #
@@ -262,6 +262,7 @@ if [ ! -f /root/.bash_aliases ] ; then
 	cat <<EOF >/root/.bash_aliases
 [ -f /etc/profile.d/quoting_style.sh ] && . /etc/profile.d/quoting_style.sh
 [ -f /etc/profile.d/aliases.sh ]       && . /etc/profile.d/aliases.sh
+[ -f /etc/profile.d/extra-paths.sh ]   && . /etc/profile.d/extra-paths.sh
 EOF
 fi
 #
