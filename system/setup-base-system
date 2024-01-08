@@ -20,6 +20,13 @@ fi
 #
 ################################################################################
 #
+echo "Setting 'needrestart' to AUTOMATIC"
+if [ -f /etc/needrestart/needrestart.conf ] ; then
+	sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
+fi
+#
+################################################################################
+#
 echo "Upgrade system (please be patient)"
 apt-get update &>/dev/null
 apt-get -y dist-upgrade &>/dev/null
@@ -47,10 +54,10 @@ fi
 #
 ################################################################################
 #
-grep bash.aliases /root/.bashrc &>/dev/null 2>&1
+grep -F bash.aliases /root/.bashrc &>/dev/null 2>&1
 if [ $? -eq 0 ] ; then
 	# Remove old modifications
-    cat /root/.bashrc | grep -v 'bash\.aliases' > /root/.bashrc.$$
+ 	cat /root/.bashrc | grep -v 'bash\.aliases' > /root/.bashrc.$$
 	mv /root/.bashrc.$$ /root/.bashrc
 fi
 echo "[ -f /etc/bash.aliases ] && . /etc/bash.aliases" > /etc/profile.d/aliases.sh
@@ -251,5 +258,11 @@ if [ -f /usr/local/bin/starship ] ; then
 	eval "\$(starship init bash)"
 fi
 EOF
+if [ ! -f /root/.bash_aliases ] ; then
+	cat <<EOF >/root/.bash_aliases
+[ -f /etc/profile.d/quoting_style.sh ] && . /etc/profile.d/quoting_style.sh
+[ -f /etc/profile.d/aliases.sh ]       && . /etc/profile.d/aliases.sh
+EOF
+fi
 #
 ################################################################################
