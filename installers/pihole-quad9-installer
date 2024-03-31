@@ -1,8 +1,7 @@
 #!/bin/bash
 #
-# pihole-installer is a simple installer for the PiHole with a Cloudflare
-# backend connecting over a cloudflare tunnel to Cloudflare's DoH (DNS over
-# HTTPS) servers.
+# pihole-installer is a simple installer for the PiHole with DNSCrypt
+# backend connecting to Quad9's DNSCrypt servers.
 #
 # It also supports a custom hosts file (/etc/hosts.lan) which it will import
 # into /etc/pihole/custom.list
