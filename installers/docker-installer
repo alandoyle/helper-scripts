@@ -2,7 +2,7 @@
 #
 # docker-installer is a simple installer for Docker.
 # 
-# Copyright (C) 2022 Alan Doyle
+# Copyright (C) 2022-2024 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
@@ -32,7 +32,7 @@ apt update
 #
 # Install docker and plugins
 #
-apt install docker-ce docker-compose-plugin docker-buildx-plugin -y
+apt install docker-ce docker-compose-plugin docker-buildx-plugin yamllint -y
 
 ################################################################################
 #
