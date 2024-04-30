@@ -1,6 +1,6 @@
 # helper-scripts
 
-A small collection of helper scripts for Ubuntu 22.04 (some of these will be replaced by Ansible when I get some time....)
+A small collection of helper scripts for Ubuntu 22.04/Debian 12 (some of these will be replaced by Ansible when I get some time....)
 
 System scripts included
 
