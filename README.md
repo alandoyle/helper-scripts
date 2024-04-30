@@ -5,6 +5,7 @@ A small collection of helper scripts for Ubuntu 22.04 (some of these will be rep
 System scripts included
 
 - Enable "Super" sudo (passwordless sudo for members of the `sudo` group)
+- Simple script to setup a base install of Ubuntu/Debian servers.
 
 Installer scripts included
 
@@ -16,6 +17,6 @@ Installer scripts included
 - Opera web browser installer
 - Vivaldi web browser installer
 - Xanmod Kernel installer
-- Docker instller
+- Docker installer
 - VSCode installer
-- PiHole installer
+- PiHole Cloudflare/Quad9 installers
