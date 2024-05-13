@@ -389,7 +389,7 @@ cat <<EOF >/etc/profile.d/starship.sh
 if [ -f /usr/local/bin/starship ] ; then
 	[ ! -d ~/.config ] && mkdir -p ~/.config
 	[ -f ~/.config/starship.toml ] && rm -f ~/.config/starship.toml
-	if [ `id -u` -eq 0 ] ; then
+	if [ \`id -u\` -eq 0 ] ; then
 		ln -sf /etc/starship.root.toml ~/.config/starship.toml
 	else
 		ln -sf /etc/starship.toml ~/.config/starship.toml
