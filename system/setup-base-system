@@ -167,24 +167,24 @@ EOF
 cat <<EOF >/etc/starship.toml
 # Simple starship.toml file
 format = """
-[](fg:#3B4252)\
-\$username\
-\$hostname\
-\$shell\
-[](fg:#3B4252 bg:#4C566A)\
-\$directory\
-[](fg:#4C566A bg:#86BBD8)\
-\$git_branch\
-\$git_commit\
-\$git_status\
-\$git_state\
-[](fg:#86BBD8)\
-\$sudo\
-\$nix_shell\
-\$cmd_duration\
-\$line_break\
-\$jobs\
-\$character\
+[ ](bg:#3B4252)\\
+\$username\\
+\$hostname\\
+\$shell\\
+[](fg:#3B4252 bg:#4C566A)\\
+\$directory\\
+[](fg:#4C566A bg:#86BBD8)\\
+\$git_branch\\
+\$git_commit\\
+\$git_status\\
+\$git_state\\
+[](fg:#86BBD8)\\
+\$sudo\\
+\$nix_shell\\
+\$cmd_duration\\
+\$line_break\\
+\$jobs\\
+\$character\\
 """
 command_timeout = 5000
 add_newline = true
@@ -233,7 +233,7 @@ format = '[ \$state(\$progress_current/\$progress_total)](\$style)'
 allow_windows = true
 disabled = false
 symbol = '!'
-style = 'bold red'
+style = 'bold green'
 format = '[ \$symbol](\$style)'
 
 [nix_shell]
@@ -260,27 +260,27 @@ vimcmd_replace_one_symbol = '[R](bold red) '
 vimcmd_replace_symbol = '[R](bold red) '
 vimcmd_visual_symbol = "[V ](bold yellow)"
 EOF
-cat <<EOF >/etc/starship.toml.root
+cat <<EOF >/etc/starship.root.toml
 # Simple starship.toml file
 format = """
-[ ](bg:#3B4252)\
-\$username\
-\$hostname\
-\$shell\
-[](fg:#3B4252 bg:#4C566A)\
-\$directory\
-[](fg:#4C566A bg:#86BBD8)\
-\$git_branch\
-\$git_commit\
-\$git_status\
-\$git_state\
-[](fg:#86BBD8)\
-\$sudo\
-\$nix_shell\
-\$cmd_duration\
-\$line_break\
-\$jobs\
-\$character\
+[ ](bg:#3B4252)\\
+\$username\\
+\$hostname\\
+\$shell\\
+[](fg:#3B4252 bg:#4C566A)\\
+\$directory\\
+[](fg:#4C566A bg:#86BBD8)\\
+\$git_branch\\
+\$git_commit\\
+\$git_status\\
+\$git_state\\
+[](fg:#86BBD8)\\
+\$sudo\\
+\$nix_shell\\
+\$cmd_duration\\
+\$line_break\\
+\$jobs\\
+\$character\\
 """
 command_timeout = 5000
 add_newline = true
@@ -390,7 +390,7 @@ if [ -f /usr/local/bin/starship ] ; then
 	[ ! -d ~/.config ] && mkdir -p ~/.config
 	[ -f ~/.config/starship.toml ] && rm -f ~/.config/starship.toml
 	if [ `id -u` -eq 0 ] ; then
-		ln -sf /etc/starship.toml.root ~/.config/starship.toml
+		ln -sf /etc/starship.root.toml ~/.config/starship.toml
 	else
 		ln -sf /etc/starship.toml ~/.config/starship.toml
 	fi
