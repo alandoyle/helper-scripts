@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# setup-base-system is a simple command to set up a base Ubuntu 22.04 server.
+# setup-base-system is a simple command to set up a base Ubuntu 22.04/Debian 12 server.
 #
 # Copyright (C) 2022-2024 Alan Doyle
 #
@@ -33,7 +33,7 @@ apt-get -y dist-upgrade &>/dev/null
 ################################################################################
 #
 echo "Adding additional applications"
-apt-get -y install vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors neofetch zip unzip btop &>/dev/null
+apt-get -y install vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors neofetch zip unzip btop exa iotop &>/dev/null
 #
 #################################################################################
 #
@@ -63,7 +63,7 @@ fi
 echo "[ -f /etc/bash.aliases ] && . /etc/bash.aliases" > /etc/profile.d/aliases.sh
 cat <<EOF >/etc/bash.aliases
 
-alias dfspace="df -hT -x udev -x tmpfs -x cgmfs -x snap -x devtmpfs -x fuse -x overlay"
+alias dfspace="df -hT -x udev -x tmpfs -x cgmfs -x snap -x devtmpfs -x fuse -x overlay -x efivarfs"
 alias pg="less"
 alias cls="clear"
 alias btop="btop --utf-force"
@@ -73,12 +73,13 @@ alias home='cd ~'
 alias cd..='cd ..'
 
 # cd into the old directory
-alias bd='cd "$OLDPWD"'
+alias bd='cd "\$OLDPWD"'
 
 # Remove a directory and all files
 alias rmd='/bin/rm  --recursive --force --verbose '
 
 # Alias's for multiple directory listing commands
+alias exa='ls'
 alias la='ls -Alh' # show hidden files
 alias lf='ls -aFh --color=always' # add colors and file type extensions
 alias lx='ls -lXBh' # sort by extension
@@ -91,7 +92,7 @@ alias lm='ls -alh |more' # pipe through 'more'
 alias lw='ls -xAh' # wide listing format
 alias ll='ls -Fls' # long listing format
 alias labc='ls -lap' #alphabetical sort
-alias lf="ls -l | egrep -v '^d'" # files only
+alias lff="ls -l | egrep -v '^d'" # files only
 alias ldir="ls -l | egrep '^d'" # directories only
 
 # Search command line history
@@ -148,97 +149,221 @@ alias dkrs='docker compose down && docker compose up -d'
 function dkxc() {
     docker exec -it "\$1" /bin/sh
 }
+
+# sudo quick shortcuts
+alias reboot='sudo reboot'
+alias suvi='sudo vi'
+alias sunano='sudo vi'
+alias surm='sudo rm'
+alias dmesg='sudo /usr/bin/dmesg'
+alias mount='sudo /usr/bin/mount'
+alias umount='sudo /usr/bin/umount'
+alias iotop='sudo /usr/sbin/iotop'
+
 EOF
 #
 ################################################################################
 #
 cat <<EOF >/etc/starship.toml
+# Simple starship.toml file
 format = """
-\$username\\
-\$hostname\\
-[](fg:#3B4252 bg:#434C5E)\\
-\$directory\\
-[](fg:#434C5E bg:#4C566A)\\
-\$git_branch\\
-\$git_status\\
-\$git_commit\\
-[](fg:#4C566A bg:#5E969A)\\
-\$battery\\
-[](fg:#5E969A)\\
-[ ](fg:#FFFFFF)\\
+[](fg:#3B4252)\
+\$username\
+\$hostname\
+\$shell\
+[](fg:#3B4252 bg:#4C566A)\
+\$directory\
+[](fg:#4C566A bg:#86BBD8)\
+\$git_branch\
+\$git_commit\
+\$git_status\
+\$git_state\
+[](fg:#86BBD8)\
+\$sudo\
+\$nix_shell\
+\$cmd_duration\
+\$line_break\
+\$jobs\
+\$character\
 """
 command_timeout = 5000
-# Disable the blank line at the start of the prompt
-add_newline = false
+add_newline = true
 
-# You can also replace your username with a neat symbol like  to save some space
 [username]
-show_always = true
-style_user = "bg:#3B4252"
-style_root = "bg:#3B4252"
-format = '[ \$user](\$style)'
+style_user = "white"
+format = '[\$user](\$style bg:#3B4252)'
 
 [hostname]
-ssh_only = false
-ssh_symbol = ' '
-format = "[@\$hostname\$ssh_symbol ](\$style)"
-trim_at = "-"
 style = "bg:#3B4252"
+format = "[@\$hostname ](\$style)"
+
+[shell]
 disabled = false
+bash_indicator = ">_ "
+fish_indicator = "><>"
+zsh_indicator = "%_ "
+powershell_indicator = ">>>"
+cmd_indicator = "<<<"
+unknown_indicator = "?_ "
+style = "bg:#3B4252"
+format = "[\$indicator](\$style)"
 
 [directory]
-style = "bg:#434C5E"
+truncation_length = 5
+style = "bg:#4C566A"
 format = "[ \$path ](\$style)"
-truncation_length = 3
-
-# Here is how you can shorten some long paths by text replacement
-# similar to mapped_locations in Oh My Posh:
-[directory.substitutions]
-"Documents" = " "
-"Downloads" = " "
-"Music" = " "
-"Pictures" = " "
-# Keep in mind that the order matters. For example:
-# "Important Documents" = "  "
-# will not be replaced, because "Documents" was already substituted before.
-# So either put "Important Documents" before "Documents" or use the substituted version:
-# "Important  " = "  "
 
 [git_branch]
-symbol = ""
-style = "bg:#4C566A"
-format = '[ \$symbol \$branch ](\$style)'
-
-[git_status]
-style = "bg:#4C566A"
-format = '[\$all_status\$ahead_behind ](\$style)'
+style = "bg:#86BBD8 fg:#3B4252"
+format = '[ \$symbol$branch ](\$style)'
 
 [git_commit]
-style = "bg:#4C566A"
-commit_hash_length = 8
+style = "bg:#86BBD8 fg:#3B4252"
+format = '[ \$hash ](\$style)'
 
-[battery]
-full_symbol = "🔋"
-charging_symbol = "🔌"
-discharging_symbol = "⚡"
-style = "bg:#5E969A"
-format = '[ \$symbol \$percentage ](\$style)'
+[git_status]
+style = "bg:#86BBD8 fg:#3B4252"
+format = '[\$all_status\$ahead_behind](\$style)'
 
-[[battery.display]]
-threshold = 30
-style = "bold red bg:#5E969A"
+[git_state]
+style = "bg:#86BBD8 fg:#3B4252"
+format = '[ \$state(\$progress_current/\$progress_total)](\$style)'
 
-[character]
-error_symbol = "[✖](bold red) "
+[sudo]
+allow_windows = true
+disabled = false
+symbol = '!'
+style = 'bold red'
+format = '[ \$symbol](\$style)'
+
+[nix_shell]
+impure_msg = '[❄️](bold blue)'
+pure_msg = '[❄️](bold green)'
+unknown_msg = '[❄️](bold yellow)'
+format = ' \$state'
 
 [cmd_duration]
-min_time = 10_000  # Show command duration over 10,000 milliseconds (=10 sec)
+min_time = 500
+style = "fg:#eb7442"
 format = " took [\$duration](\$style)"
+
+[line_break]
+
+[jobs]
+
+[character]
+success_symbol = '[-](bold green)'
+# would be nice to have sudo module ehre
+error_symbol = '[✕](bold red)'
+vimcmd_symbol = '[N](bold blue) '
+vimcmd_replace_one_symbol = '[R](bold red) '
+vimcmd_replace_symbol = '[R](bold red) '
+vimcmd_visual_symbol = "[V ](bold yellow)"
+EOF
+cat <<EOF >/etc/starship.toml.root
+# Simple starship.toml file
+format = """
+[ ](bg:#3B4252)\
+\$username\
+\$hostname\
+\$shell\
+[](fg:#3B4252 bg:#4C566A)\
+\$directory\
+[](fg:#4C566A bg:#86BBD8)\
+\$git_branch\
+\$git_commit\
+\$git_status\
+\$git_state\
+[](fg:#86BBD8)\
+\$sudo\
+\$nix_shell\
+\$cmd_duration\
+\$line_break\
+\$jobs\
+\$character\
+"""
+command_timeout = 5000
+add_newline = true
+
+[username]
+style_user = "white"
+format = '[\$user](\$style bg:#3B4252)'
+
+[hostname]
+style = "bg:#3B4252"
+format = "[@\$hostname ](\$style)"
+
+[shell]
+disabled = false
+bash_indicator = ">_ "
+fish_indicator = "><>"
+zsh_indicator = "%_ "
+powershell_indicator = ">>>"
+cmd_indicator = "<<<"
+unknown_indicator = "?_ "
+style = "bg:#3B4252"
+format = "[\$indicator](\$style)"
+
+[directory]
+truncation_length = 5
+style = "bg:#4C566A"
+format = "[ \$path ](\$style)"
+
+[git_branch]
+style = "bg:#86BBD8 fg:#3B4252"
+format = '[ \$symbol\$branch ](\$style)'
+
+[git_commit]
+style = "bg:#86BBD8 fg:#3B4252"
+format = '[ \$hash ](\$style)'
+
+[git_status]
+style = "bg:#86BBD8 fg:#3B4252"
+format = '[\$all_status\$ahead_behind](\$style)'
+
+[git_state]
+style = "bg:#86BBD8 fg:#3B4252"
+format = '[ \$state(\$progress_current/\$progress_total)](\$style)'
+
+[sudo]
+allow_windows = true
+disabled = false
+symbol = '!'
+style = 'bold red'
+format = '[ \$symbol](\$style)'
+
+[nix_shell]
+impure_msg = '[❄️](bold blue)'
+pure_msg = '[❄️](bold green)'
+unknown_msg = '[❄️](bold yellow)'
+format = ' \$state'
+
+[cmd_duration]
+min_time = 500
+style = "fg:#eb7442"
+format = " took [\$duration](\$style)"
+
+[line_break]
+
+[jobs]
+
+[character]
+success_symbol = '[-](bold green)'
+# would be nice to have sudo module here
+error_symbol = '[✕](bold red)'
+vimcmd_symbol = '[N](bold blue) '
+vimcmd_replace_one_symbol = '[R](bold red) '
+vimcmd_replace_symbol = '[R](bold red) '
+vimcmd_visual_symbol = "[V ](bold yellow)"
 EOF
 #
 ################################################################################
 #
-curl --fail --silent --location --output /tmp/starship.tar.gz https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz
+STARSHIP_URL=https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz
+if [ "`uname -m`" = "aarch64" ] ; then
+	STARSHIP_URL=https://github.com/starship/starship/releases/latest/download/starship-aarch64-unknown-linux-musl.tar.gz
+fi
+curl --fail --silent --location --output /tmp/starship.tar.gz "${STARSHIP_URL}"
 tar xvf /tmp/starship.tar.gz >/dev/null 2>&1
 [ -f /usr/local/bin/starship ] && rm -f /usr/local/bin/starship
 mv starship /usr/local/bin/starship
@@ -248,21 +373,33 @@ rm -f /tmp/starship.tar.gz
 ################################################################################
 #
 echo "Updating profile"
-echo -e "clear\nneofetch" > /etc/profile.d/neofetch.sh
+
+[ -f /etc/profile.d/neofetch.sh ] && rm /etc/profile.d/neofetch.sh
+cat <<EOF >/etc/profile.d/sysinfo.sh
+if [ "${SUDO_USER}" = "" ] ; then
+	clear
+	neofetch
+fi
+EOF
+
+
 echo "export QUOTING_STYLE=literal" > /etc/profile.d/quoting_style.sh
+
 cat <<EOF >/etc/profile.d/starship.sh
 if [ -f /usr/local/bin/starship ] ; then
 	[ ! -d ~/.config ] && mkdir -p ~/.config
 	[ -f ~/.config/starship.toml ] && rm -f ~/.config/starship.toml
-	ln -sf /etc/starship.toml ~/.config/starship.toml
+	if [ `id -u` -eq 0 ] ; then
+		ln -sf /etc/starship.toml.root ~/.config/starship.toml
+	else
+		ln -sf /etc/starship.toml ~/.config/starship.toml
+	fi
 	eval "\$(starship init bash)"
 fi
 EOF
-if [ ! -f /root/.bash_aliases ] ; then
-	cat <<EOF >/root/.bash_aliases
-[ -f /etc/profile.d/quoting_style.sh ] && . /etc/profile.d/quoting_style.sh
-[ -f /etc/profile.d/aliases.sh ]       && . /etc/profile.d/aliases.sh
-[ -f /etc/profile.d/extra-paths.sh ]   && . /etc/profile.d/extra-paths.sh
+# Create a new .bash_aliases for root
+cat <<EOF >/root/.bash_aliases
+. /etc/profile
 EOF
 fi
 #
