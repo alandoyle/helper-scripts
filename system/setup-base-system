@@ -376,7 +376,7 @@ echo "Updating profile"
 
 [ -f /etc/profile.d/neofetch.sh ] && rm /etc/profile.d/neofetch.sh
 cat <<EOF >/etc/profile.d/sysinfo.sh
-if [ "${SUDO_USER}" = "" ] ; then
+if [ "\${SUDO_USER}" = "" ] ; then
 	clear
 	neofetch
 fi
