@@ -63,10 +63,10 @@ fi
 echo "[ -f /etc/bash.aliases ] && . /etc/bash.aliases" > /etc/profile.d/aliases.sh
 cat <<EOF >/etc/bash.aliases
 
-alias dfspace="df -hT -x udev -x tmpfs -x cgmfs -x snap -x devtmpfs -x fuse -x overlay -x efivarfs"
-alias pg="less"
-alias cls="clear"
-alias btop="btop --utf-force"
+alias dfspace='df -hT -x udev -x tmpfs -x cgmfs -x snap -x devtmpfs -x fuse -x overlay -x efivarfs'
+alias pg='less'
+alias cls='clear'
+alias btop='btop --utf-force'
 
 # Change directory aliases
 alias home='cd ~'
@@ -80,23 +80,23 @@ alias rmd='/bin/rm  --recursive --force --verbose '
 
 # Alias's for multiple directory listing commands
 alias ls='exa -H --group-directories-first'
-alias la='ls -Alh' # show hidden files
-alias lf='ls -aFh --color=always' # add colors and file type extensions
-alias lx='ls -lXBh' # sort by extension
-alias lk='ls -lSrh' # sort by size
-alias lc='ls -lcrh' # sort by change time
-alias lu='ls -lurh' # sort by access time
-alias lr='ls -lRh' # recursive ls
-alias lt='ls -ltrh' # sort by date
-alias lm='ls -alh |more' # pipe through 'more'
-alias lw='ls -xAh' # wide listing format
-alias ll='ls -Fls' # long listing format
-alias labc='ls -lap' #alphabetical sort
-alias lff="ls -l | egrep -v '^d'" # files only
-alias ldir="ls -l | egrep '^d'" # directories only
+alias la='exa -alh' # show hidden files
+alias lf='exa -aFh --color=always' # add colors and file type extensions
+alias lx='exa -l --sort=ext' # sort by extension
+alias lk='exa -l --sort=size' # sort by size
+alias lc='exa -l --sort=mod' # sort by modified time
+alias lu='exa -l --sort=acc' # sort by access time
+alias lr='exa -lR' # recursive ls
+alias lt='exa -l --sort=new' # sort by date
+alias lm='exa -al |more' # pipe through 'more'
+alias lw='exa -xa' # wide listing format
+alias ll='exa -alF --group-directories-first' # long listing format
+alias labc='exa -l --sort=name' #alphabetical sort
+alias lff="exa -l | egrep -v '^d'" # files only
+alias ldir="exa -l | egrep '^d'" # directories only
 
 # Search command line history
-alias h="history | grep "
+alias h='history | grep '
 
 # Alias's for archives
 alias mktar='tar -cvf'
@@ -263,18 +263,18 @@ EOF
 cat <<EOF >/etc/starship.root.toml
 # Simple starship.toml file
 format = """
-[ ](bg:#3B4252)\\
+[ ](bg:#5B0000)\\
 \$username\\
 \$hostname\\
 \$shell\\
-[](fg:#3B4252 bg:#4C566A)\\
+[](fg:#5B0000 bg:#A9191C)\\
 \$directory\\
-[](fg:#4C566A bg:#86BBD8)\\
+[](fg:#A9191C bg:#FF3535)\\
 \$git_branch\\
 \$git_commit\\
 \$git_status\\
 \$git_state\\
-[](fg:#86BBD8)\\
+[](fg:#FF3535)\\
 \$sudo\\
 \$nix_shell\\
 \$cmd_duration\\
@@ -287,10 +287,10 @@ add_newline = true
 
 [username]
 style_user = "white"
-format = '[\$user](\$style bg:#3B4252)'
+format = '[\$user](\$style bg:#5B0000)'
 
 [hostname]
-style = "bg:#3B4252"
+style = "bg:#5B0000"
 format = "[@\$hostname ](\$style)"
 
 [shell]
@@ -301,28 +301,28 @@ zsh_indicator = "%_ "
 powershell_indicator = ">>>"
 cmd_indicator = "<<<"
 unknown_indicator = "?_ "
-style = "bg:#3B4252"
+style = "bg:#5B0000"
 format = "[\$indicator](\$style)"
 
 [directory]
 truncation_length = 5
-style = "bg:#4C566A"
+style = "bg:#A9191C"
 format = "[ \$path ](\$style)"
 
 [git_branch]
-style = "bg:#86BBD8 fg:#3B4252"
+style = "bg:#FF3535 fg:#5B0000"
 format = '[ \$symbol\$branch ](\$style)'
 
 [git_commit]
-style = "bg:#86BBD8 fg:#3B4252"
+style = "bg:#FF3535 fg:#5B0000"
 format = '[ \$hash ](\$style)'
 
 [git_status]
-style = "bg:#86BBD8 fg:#3B4252"
+style = "bg:#FF3535 fg:#5B0000"
 format = '[\$all_status\$ahead_behind](\$style)'
 
 [git_state]
-style = "bg:#86BBD8 fg:#3B4252"
+style = "bg:#FF3535 fg:#5B0000"
 format = '[ \$state(\$progress_current/\$progress_total)](\$style)'
 
 [sudo]
