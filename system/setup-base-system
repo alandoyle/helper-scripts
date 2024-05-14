@@ -79,7 +79,7 @@ alias bd='cd "\$OLDPWD"'
 alias rmd='/bin/rm  --recursive --force --verbose '
 
 # Alias's for multiple directory listing commands
-alias exa='ls'
+alias ls='exa -H --group-directories-first'
 alias la='ls -Alh' # show hidden files
 alias lf='ls -aFh --color=always' # add colors and file type extensions
 alias lx='ls -lXBh' # sort by extension
