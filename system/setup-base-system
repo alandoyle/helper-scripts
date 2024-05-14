@@ -399,7 +399,9 @@ fi
 EOF
 # Create a new .bash_aliases for root
 cat <<EOF >/root/.bash_aliases
-. /etc/profile
+if [ "\${SUDO_USER}" != "" ] ; then
+	. /etc/profile
+fi
 EOF
 #
 ################################################################################
