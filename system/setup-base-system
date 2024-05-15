@@ -424,7 +424,13 @@ fi
 ################################################################################
 #
 USERHOMEDIR=`grep ${SUDO_USER} /etc/passwd|cut -d: -f6`
-[ ! -z ${USERHOMEDIR} -a ! -f ${USERHOMEDIR}/.hushlogin ] && touch ${USERHOMEDIR}/.hushlogin
-[ ! -f /root/.hustlogin ] && touch /root/.hushlogin
+if [ ! -z ${USERHOMEDIR} -a ! -f ${USERHOMEDIR}/.hushlogin ] ; then
+	echo "Setting .hushlogin for ${SUDO_USER} (${USERHOMEDIR})"
+	touch ${USERHOMEDIR}/.hushlogin
+fi
+if [ ! -f /root/.hustlogin ] ; then
+	echo "Setting root .hushlogin"
+	touch /root/.hushlogin
+fi
 #
 ################################################################################
