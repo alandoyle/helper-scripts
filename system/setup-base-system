@@ -427,8 +427,9 @@ USERHOMEDIR=`grep ${SUDO_USER} /etc/passwd|cut -d: -f6`
 if [ ! -z ${USERHOMEDIR} -a ! -f ${USERHOMEDIR}/.hushlogin ] ; then
 	echo "Setting .hushlogin for ${SUDO_USER} (${USERHOMEDIR})"
 	touch ${USERHOMEDIR}/.hushlogin
+	chown ${SUDO_USER}:${SUDO_USER} ${USERHOMEDIR}/.hushlogin
 fi
-if [ ! -f /root/.hustlogin ] ; then
+if [ ! -f /root/.hushlogin ] ; then
 	echo "Setting root .hushlogin"
 	touch /root/.hushlogin
 fi
