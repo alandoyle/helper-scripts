@@ -406,9 +406,10 @@ if [ "\${SUDO_USER}" != "" ] ; then
 fi
 EOF
 
-# Check if we're installing on Proxmox as it has a custom /root/.bashrc
-if [ -f /usr/bin/pveversion ] ; then
-	echo "Updating custom Proxmox /root/.bashrc"
+# Check if we're installing on Debian as it has a differnet /root/.bashrc to Ubuntu
+. /etc/os-release
+if [ "${ID}" = "debian" ] ; then
+	echo "Updating /root/.bashrc"
 	echo -e "if [ \"\${SUDO_USER}\" != \"\" ] ; then\n\t. /root/.bash_aliases\nfi" >> /root/.bashrc
 fi
 #
