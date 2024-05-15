@@ -7,7 +7,7 @@
 # https://github.com/alandoyle/helper-scripts/main/system/setup-base-system
 #
 # Usage:
-#  sudo bash -c "$(wget -qLO -  https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/setup-base-system)"
+#  sudo bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/setup-base-system)"
 #
 ################################################################################
 #
@@ -408,9 +408,10 @@ EOF
 
 # Check if we're installing on Debian as it has a differnet /root/.bashrc to Ubuntu
 . /etc/os-release
-if [ "${ID}" = "debian" ] ; then
+grep "PROFILE UPDATE" /root/.bashrc >/dev/null 2>&1
+if [ $? -ne 0 -a "${ID}" = "debian" ] ; then
 	echo "Updating /root/.bashrc"
-	echo -e "if [ \"\${SUDO_USER}\" != \"\" ] ; then\n\t. /root/.bash_aliases\nfi" >> /root/.bashrc
+	echo -e "#\n# PROFILE UPDATE\nif [ \"\${SUDO_USER}\" != \"\" ] ; then\n\t. /root/.bash_aliases\nfi" >> /root/.bashrc
 fi
 #
 ################################################################################
