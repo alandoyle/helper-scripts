@@ -422,3 +422,9 @@ if [ ! -f /var/lib/plocate/plocate.db ] ; then
 fi
 #
 ################################################################################
+#
+USERHOMEDIR=`grep ${SUDO_USER} /etc/passwd|cut -d: -f6`
+[ ! -z ${USERHOMEDIR} -a ! -f ${USERHOMEDIR}/.hushlogin ] && touch ${USERHOMEDIR}/.hushlogin
+[ ! -f /root/.hustlogin ] && touch /root/.hushlogin
+#
+################################################################################
