@@ -33,7 +33,7 @@ apt-get -y dist-upgrade &>/dev/null
 ################################################################################
 #
 echo "Adding additional applications"
-apt-get -y install vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors neofetch zip unzip btop exa iotop nala &>/dev/null
+apt-get -y install vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors neofetch zip unzip btop exa iotop nala plocate rsync powertop &>/dev/null
 #
 #################################################################################
 #
@@ -153,13 +153,14 @@ function dkxc() {
 # sudo quick shortcuts
 alias reboot='sudo reboot'
 alias suvi='sudo vi'
-alias sunano='sudo vi'
+alias sunano='sudo nano'
 alias surm='sudo rm'
 alias dmesg='sudo /usr/bin/dmesg'
 alias mount='sudo /usr/bin/mount'
 alias umount='sudo /usr/bin/umount'
 alias iotop='sudo /usr/sbin/iotop'
 alias apt='sudo nala'
+alias powertop='sudo powertop'
 
 EOF
 #
@@ -383,7 +384,6 @@ if [ "\${SUDO_USER}" = "" ] ; then
 fi
 EOF
 
-
 echo "export QUOTING_STYLE=literal" > /etc/profile.d/quoting_style.sh
 
 cat <<EOF >/etc/profile.d/starship.sh
@@ -398,11 +398,25 @@ if [ -f /usr/local/bin/starship ] ; then
 	eval "\$(starship init bash)"
 fi
 EOF
+
 # Create a new .bash_aliases for root
 cat <<EOF >/root/.bash_aliases
 if [ "\${SUDO_USER}" != "" ] ; then
 	. /etc/profile
 fi
 EOF
+
+# Check if we're installing on Proxmox as it has a custom /root/.bashrc
+if [ -f /usr/bin/pveversion ] ; then
+	echo "Updating custom Proxmox /root/.bashrc"
+	echo -e "if [ \"\${SUDO_USER}\" != \"\" ] ; then\n\t. /root/.bash_aliases\nfi" >> /root/.bashrc
+fi
+#
+################################################################################
+#
+if [ ! -f /var/lib/plocate/plocate.db ] ; then
+	echo "Updating plocate.db"
+	updatedb
+fi
 #
 ################################################################################
