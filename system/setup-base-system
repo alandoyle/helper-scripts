@@ -406,6 +406,11 @@ if [ "\${SUDO_USER}" != "" ] ; then
 fi
 EOF
 
+# Update /etc/skel
+[ ! -d /etc/skel/.config ] && mkdir -p /etc/skel/.config
+[ -f /etc/skel/.config/starship.toml ] && rm -f /etc/skel/.config/starship.toml
+ln -sf /etc/starship.toml /etc/skel/.config/starship.toml
+
 # Check if we're installing on Debian as it has a differnet /root/.bashrc to Ubuntu
 . /etc/os-release
 grep "PROFILE UPDATE" /root/.bashrc >/dev/null 2>&1
