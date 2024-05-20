@@ -33,11 +33,42 @@ apt-get -y dist-upgrade &>/dev/null
 ################################################################################
 #
 echo "Adding additional applications"
-apt-get -y install vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors neofetch zip unzip btop exa iotop nala plocate rsync powertop &>/dev/null
+apt-get -y install neovim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors neofetch zip unzip btop exa iotop nala plocate rsync powertop command-not-found &>/dev/null
 #
 #################################################################################
 #
 echo "Configuring applications"
+apt-file update &>/dev/null
+update-command-not-found &>/dev/null
+if [ !  -f /etc/skel/.config/nvim/init.vim ] ; then
+	[ ! -d /etc/skel/.config/nvim ] && mkdir -p /etc/skel/.config/nvim
+	cat <<EOF >/etc/skel/.config/nvim/init.vim
+set nocompatible            " disable compatibility to old-time vi
+set showmatch               " show matching
+set ignorecase              " case insensitive
+: set mouse=v                 " middle-click paste with
+set hlsearch                " highlight search
+set incsearch               " incremental search
+set tabstop=4               " number of columns occupied by a tab
+set softtabstop=4           " see multiple spaces as tabstops so <BS> does the right thing
+set expandtab               " converts tabs to white space
+set shiftwidth=4            " width for autoindents
+set autoindent              " indent a new line the same amount as the line just typed
+: set number                  " add line numbers
+set wildmode=longest,list   " get bash-like tab completions
+" set cc=80                   " set an 80 column border for good coding style
+filetype plugin indent on   "allow auto-indenting depending on file type
+syntax on                   " syntax highlighting
+: set mouse=a                 " enable mouse click
+set clipboard=unnamedplus   " using system clipboard
+filetype plugin on
+: set cursorline              " highlight current cursorline
+set ttyfast                 " Speed up scrolling in Vim
+" set spell                 " enable spell check (may need to download language package)
+" set noswapfile            " disable creating swap file
+" set backupdir=~/.cache/vim " Directory to store backup files.
+EOF
+
 if [ !  -f /etc/vim/vimrc.local ] ; then
     cat <<EOF >/etc/vim/vimrc.local
 if filereadable("\$VIMRUNTIME/defaults.vim")
@@ -51,121 +82,13 @@ set mouse=
 syntax on
 EOF
 fi
+update-alternatives --set vi /usr/bin/nvim >/dev/null
+update-alternatives --set vim /usr/bin/nvim >/dev/null
+update-alternatives --set view /usr/libexec/neovim/view >/dev/null
 #
 ################################################################################
 #
-grep -F bash.aliases /root/.bashrc &>/dev/null 2>&1
-if [ $? -eq 0 ] ; then
-	# Remove old modifications
- 	cat /root/.bashrc | grep -v 'bash\.aliases' > /root/.bashrc.$$
-	mv /root/.bashrc.$$ /root/.bashrc
-fi
-echo "[ -f /etc/bash.aliases ] && . /etc/bash.aliases" > /etc/profile.d/aliases.sh
-cat <<EOF >/etc/bash.aliases
-
-alias dfspace='df -hT -x udev -x tmpfs -x cgmfs -x snap -x devtmpfs -x fuse -x overlay -x efivarfs'
-alias pg='less'
-alias cls='clear'
-alias btop='btop --utf-force'
-
-# Change directory aliases
-alias home='cd ~'
-alias cd..='cd ..'
-
-# cd into the old directory
-alias bd='cd "\$OLDPWD"'
-
-# Remove a directory and all files
-alias rmd='/bin/rm  --recursive --force --verbose '
-
-# Alias's for multiple directory listing commands
-alias ls='exa -H --group-directories-first'
-alias la='exa -alh' # show hidden files
-alias lf='exa -aFh --color=always' # add colors and file type extensions
-alias lx='exa -l --sort=ext' # sort by extension
-alias lk='exa -l --sort=size' # sort by size
-alias lc='exa -l --sort=mod' # sort by modified time
-alias lu='exa -l --sort=acc' # sort by access time
-alias lr='exa -lR' # recursive ls
-alias lt='exa -l --sort=new' # sort by date
-alias lm='exa -al |more' # pipe through 'more'
-alias lw='exa -xa' # wide listing format
-alias ll='exa -alF --group-directories-first' # long listing format
-alias labc='exa -l --sort=name' #alphabetical sort
-alias lff="exa -l | egrep -v '^d'" # files only
-alias ldir="exa -l | egrep '^d'" # directories only
-
-# Search command line history
-alias h='history | grep '
-
-# Alias's for archives
-alias mktar='tar -cvf'
-alias mkbz2='tar -cvjf'
-alias mkgz='tar -cvzf'
-alias untar='tar -xvf'
-alias unbz2='tar -xvjf'
-alias ungz='tar -xvzf'
-
-# Extracts any archive(s) (if unp isn't installed)
-extract () {
-	for archive in "\$@"; do
-		if [ -f "\$archive" ] ; then
-			case \$archive in
-				*.tar.bz2)   tar xvjf \$archive    ;;
-				*.tar.gz)    tar xvzf \$archive    ;;
-				*.bz2)       bunzip2 \$archive     ;;
-				*.rar)       unrar -x \$archive    ;;
-				*.gz)        gunzip \$archive      ;;
-				*.tar)       tar xvf \$archive     ;;
-				*.tbz2)      tar xvjf \$archive    ;;
-				*.tgz)       tar xvzf \$archive    ;;
-				*.zip)       unzip \$archive       ;;
-				*.Z)         uncompress \$archive  ;;
-				*.7z)        7z x \$archive        ;;
-				*)           echo "don't know how to extract '\$archive'..." ;;
-			esac
-		else
-			echo "'\$archive' is not a valid file!"
-		fi
-	done
-}
-
-# Disk usage support
-function used() {
-    du -h "\$1"| tail -1
-}
-function usedm() {
-    du --block-size=1M "\$1" | tail -1
-}
-function usedg() {
-    du --block-size=1G "\$1" | tail -1
-}
-
-# Docker support
-alias dkup='docker compose up -d'
-alias dkdn='docker compose down'
-alias dkps='docker ps --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Ports}}"'
-alias dkrs='docker compose down && docker compose up -d'
-function dkxc() {
-    docker exec -it "\$1" /bin/sh
-}
-
-# sudo quick shortcuts
-alias reboot='sudo reboot'
-alias suvi='sudo vi'
-alias sunano='sudo nano'
-alias surm='sudo rm'
-alias dmesg='sudo /usr/bin/dmesg'
-alias mount='sudo /usr/bin/mount'
-alias umount='sudo /usr/bin/umount'
-alias iotop='sudo /usr/sbin/iotop'
-alias apt='sudo nala'
-alias powertop='sudo powertop'
-
-EOF
-#
-################################################################################
-#
+echo "Creating STARSHIP profiles"
 cat <<EOF >/etc/starship.toml
 # Simple starship.toml file
 format = """
@@ -358,9 +281,16 @@ vimcmd_replace_one_symbol = '[R](bold red) '
 vimcmd_replace_symbol = '[R](bold red) '
 vimcmd_visual_symbol = "[V ](bold yellow)"
 EOF
+
+# Update /etc/skel
+[ ! -d /etc/skel/.config ] && mkdir -p /etc/skel/.config
+[ -f /etc/skel/.config/starship.toml ] && rm -f /etc/skel/.config/starship.toml
+ln -sf /etc/starship.toml /etc/skel/.config/starship.toml
 #
 ################################################################################
 #
+
+echo "Installing STARSHIP (`uname -m`))"
 STARSHIP_URL=https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz
 if [ "`uname -m`" = "aarch64" ] ; then
 	STARSHIP_URL=https://github.com/starship/starship/releases/latest/download/starship-aarch64-unknown-linux-musl.tar.gz
@@ -374,8 +304,17 @@ rm -f /tmp/starship.tar.gz
 #
 ################################################################################
 #
-echo "Updating profile"
+echo "Updating BASH profile"
 
+# NeoVIM
+cat <<EOF >/etc/profile.d/neovim.sh
+if [ ! -f ~/.config/nvim/init.vim ] ; then
+	[ ! -d ~/.config/nvim ] && mkdir -p ~/.config/nvim
+	cp /etc/skel/.config/nvim/init.vim ~/.config/nvim
+fi
+EOF
+
+# Neofetch
 [ -f /etc/profile.d/neofetch.sh ] && rm /etc/profile.d/neofetch.sh
 cat <<EOF >/etc/profile.d/sysinfo.sh
 if [ "\${SUDO_USER}" = "" ] ; then
@@ -384,8 +323,17 @@ if [ "\${SUDO_USER}" = "" ] ; then
 fi
 EOF
 
+# Terminal
+cat <<EOF >/etc/profile.d/term.sh
+if [ -z \${SSH_TTY} ] ; then
+	export TERM=linux
+fi
+EOF
+
+# Quoting Style
 echo "export QUOTING_STYLE=literal" > /etc/profile.d/quoting_style.sh
 
+# Starship
 cat <<EOF >/etc/profile.d/starship.sh
 if [ -f /usr/local/bin/starship ] ; then
 	[ ! -d ~/.config ] && mkdir -p ~/.config
@@ -399,18 +347,6 @@ if [ -f /usr/local/bin/starship ] ; then
 fi
 EOF
 
-# Create a new .bash_aliases for root
-cat <<EOF >/root/.bash_aliases
-if [ "\${SUDO_USER}" != "" ] ; then
-	. /etc/profile
-fi
-EOF
-
-# Update /etc/skel
-[ ! -d /etc/skel/.config ] && mkdir -p /etc/skel/.config
-[ -f /etc/skel/.config/starship.toml ] && rm -f /etc/skel/.config/starship.toml
-ln -sf /etc/starship.toml /etc/skel/.config/starship.toml
-
 # Check if we're installing on Debian as it has a differnet /root/.bashrc to Ubuntu
 . /etc/os-release
 grep "PROFILE UPDATE" /root/.bashrc >/dev/null 2>&1
@@ -418,6 +354,128 @@ if [ $? -ne 0 -a "${ID}" = "debian" ] ; then
 	echo "Updating /root/.bashrc"
 	echo -e "#\n# PROFILE UPDATE\nif [ \"\${SUDO_USER}\" != \"\" ] ; then\n\t. /root/.bash_aliases\nfi" >> /root/.bashrc
 fi
+#
+################################################################################
+#
+echo "Configuring BASH aliases"
+grep -F bash.aliases /root/.bashrc &>/dev/null 2>&1
+if [ $? -eq 0 ] ; then
+	# Remove old modifications
+ 	cat /root/.bashrc | grep -v 'bash\.aliases' > /root/.bashrc.$$
+	mv /root/.bashrc.$$ /root/.bashrc
+fi
+echo "[ -f /etc/bash.aliases ] && . /etc/bash.aliases" > /etc/profile.d/aliases.sh
+cat <<EOF >/etc/bash.aliases
+
+alias dfspace='df -hT -x udev -x tmpfs -x cgmfs -x snap -x devtmpfs -x fuse -x overlay -x efivarfs'
+alias pg='less'
+alias cls='clear'
+alias btop='btop --utf-force'
+alias root='sudo -s'
+
+# Change directory aliases
+alias home='cd ~'
+alias cd..='cd ..'
+
+# cd into the old directory
+alias bd='cd "\$OLDPWD"'
+
+# Remove a directory and all files
+alias rmd='/bin/rm  --recursive --force --verbose '
+
+# Alias's for multiple directory listing commands
+alias ls='exa -H --group-directories-first'
+alias la='exa -alh' # show hidden files
+alias lf='exa -aFh --color=always' # add colors and file type extensions
+alias lx='exa -l --sort=ext' # sort by extension
+alias lk='exa -l --sort=size' # sort by size
+alias lc='exa -l --sort=mod' # sort by modified time
+alias lu='exa -l --sort=acc' # sort by access time
+alias lr='exa -lR' # recursive ls
+alias lt='exa -l --sort=new' # sort by date
+alias lm='exa -al |more' # pipe through 'more'
+alias lw='exa -xa' # wide listing format
+alias ll='exa -alF --group-directories-first' # long listing format
+alias labc='exa -l --sort=name' #alphabetical sort
+alias lff="exa -l | egrep -v '^d'" # files only
+alias ldir="exa -l | egrep '^d'" # directories only
+
+# Search command line history
+alias h='history | grep '
+
+# Alias's for archives
+alias mktar='tar -cvf'
+alias mkbz2='tar -cvjf'
+alias mkgz='tar -cvzf'
+alias untar='tar -xvf'
+alias unbz2='tar -xvjf'
+alias ungz='tar -xvzf'
+
+# Extracts any archive(s) (if unp isn't installed)
+extract () {
+	for archive in "\$@"; do
+		if [ -f "\$archive" ] ; then
+			case \$archive in
+				*.tar.bz2)   tar xvjf \$archive    ;;
+				*.tar.gz)    tar xvzf \$archive    ;;
+				*.bz2)       bunzip2 \$archive     ;;
+				*.rar)       unrar -x \$archive    ;;
+				*.gz)        gunzip \$archive      ;;
+				*.tar)       tar xvf \$archive     ;;
+				*.tbz2)      tar xvjf \$archive    ;;
+				*.tgz)       tar xvzf \$archive    ;;
+				*.zip)       unzip \$archive       ;;
+				*.Z)         uncompress \$archive  ;;
+				*.7z)        7z x \$archive        ;;
+				*)           echo "don't know how to extract '\$archive'..." ;;
+			esac
+		else
+			echo "'\$archive' is not a valid file!"
+		fi
+	done
+}
+
+# Disk usage support
+function used() {
+    du -h "\$1"| tail -1
+}
+function usedm() {
+    du --block-size=1M "\$1" | tail -1
+}
+function usedg() {
+    du --block-size=1G "\$1" | tail -1
+}
+
+# Docker support
+alias dkup='docker compose up -d'
+alias dkdn='docker compose down'
+alias dkps='docker ps --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Ports}}"'
+alias dkrs='docker compose down && docker compose up -d'
+function dkxc() {
+    docker exec -it "\$1" /bin/sh
+}
+
+# sudo quick shortcuts
+alias reboot='sudo reboot'
+alias suvi='sudo vi'
+alias sunano='sudo nano'
+alias surm='sudo rm'
+alias dmesg='sudo /usr/bin/dmesg'
+alias mount='sudo /usr/bin/mount'
+alias umount='sudo /usr/bin/umount'
+alias iotop='sudo /usr/sbin/iotop'
+alias apt='sudo nala'
+alias powertop='sudo powertop'
+
+EOF
+
+# Create a new .bash_aliases for root
+cat <<EOF >/root/.bash_aliases
+if [ "\${SUDO_USER}" != "" ] ; then
+	. /etc/profile
+fi
+EOF
+
 #
 ################################################################################
 #
@@ -437,6 +495,10 @@ fi
 if [ ! -f /root/.hushlogin ] ; then
 	echo "Setting root .hushlogin"
 	touch /root/.hushlogin
+fi
+if [ ! -f /etc/skel/.hushlogin ] ; then
+	echo "Setting default .hushlogin"
+	touch /etc/skel/.hushlogin
 fi
 #
 ################################################################################
