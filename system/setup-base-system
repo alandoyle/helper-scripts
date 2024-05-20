@@ -290,7 +290,7 @@ ln -sf /etc/starship.toml /etc/skel/.config/starship.toml
 ################################################################################
 #
 
-echo "Installing STARSHIP (`uname -m`))"
+echo "Installing STARSHIP (`uname -m`)"
 STARSHIP_URL=https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz
 if [ "`uname -m`" = "aarch64" ] ; then
 	STARSHIP_URL=https://github.com/starship/starship/releases/latest/download/starship-aarch64-unknown-linux-musl.tar.gz
