@@ -371,7 +371,7 @@ alias dfspace='df -hT -x udev -x tmpfs -x cgmfs -x snap -x devtmpfs -x fuse -x o
 alias pg='less'
 alias cls='clear'
 alias btop='btop --utf-force'
-alias root='sudo -s'
+alias goroot='sudo -s'
 
 # Change directory aliases
 alias home='cd ~'
