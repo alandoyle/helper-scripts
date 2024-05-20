@@ -46,7 +46,7 @@ if [ !  -f /etc/skel/.config/nvim/init.vim ] ; then
 set nocompatible            " disable compatibility to old-time vi
 set showmatch               " show matching
 set ignorecase              " case insensitive
-: set mouse=v                 " middle-click paste with
+" set mouse=v                 " middle-click paste with
 set hlsearch                " highlight search
 set incsearch               " incremental search
 set tabstop=4               " number of columns occupied by a tab
@@ -54,15 +54,15 @@ set softtabstop=4           " see multiple spaces as tabstops so <BS> does the r
 set expandtab               " converts tabs to white space
 set shiftwidth=4            " width for autoindents
 set autoindent              " indent a new line the same amount as the line just typed
-: set number                  " add line numbers
+" set number                  " add line numbers
 set wildmode=longest,list   " get bash-like tab completions
 " set cc=80                   " set an 80 column border for good coding style
 filetype plugin indent on   "allow auto-indenting depending on file type
 syntax on                   " syntax highlighting
-: set mouse=a                 " enable mouse click
+" set mouse=a                 " enable mouse click
 set clipboard=unnamedplus   " using system clipboard
 filetype plugin on
-: set cursorline              " highlight current cursorline
+" set cursorline              " highlight current cursorline
 set ttyfast                 " Speed up scrolling in Vim
 " set spell                 " enable spell check (may need to download language package)
 " set noswapfile            " disable creating swap file
@@ -352,7 +352,7 @@ EOF
 grep "PROFILE UPDATE" /root/.bashrc >/dev/null 2>&1
 if [ $? -ne 0 -a "${ID}" = "debian" ] ; then
 	echo "Updating /root/.bashrc"
-	echo -e "#\n# PROFILE UPDATE\nif [ \"\${SUDO_USER}\" != \"\" ] ; then\n\t. /root/.bash_aliases\nfi" >> /root/.bashrc
+	echo -e "#\n# PROFILE UPDATE\nps -p 2 >/dev/null # LXD Container check\nif [ \$? -ne 0 -o \"\${SUDO_USER}\" != \"\" ] ; then\n\t. /root/.bash_aliases\nfi" >> /root/.bashrc
 fi
 #
 ################################################################################
@@ -471,7 +471,8 @@ EOF
 
 # Create a new .bash_aliases for root
 cat <<EOF >/root/.bash_aliases
-if [ "\${SUDO_USER}" != "" ] ; then
+ps -p 2 >/dev/null # LXD Container check
+if [ \$? -ne 0 -o "\${SUDO_USER}" != "" ] ; then
 	. /etc/profile
 fi
 EOF
