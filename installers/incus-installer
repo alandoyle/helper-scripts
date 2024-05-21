@@ -61,11 +61,19 @@ apt install bridge-utils incus -y
 
 ################################################################################
 #
+# Prevent connectivity issues with Incus and Docker (also needed for Armbian if using ifupdown insted of NetworkManager)
+# https://linuxcontainers.org/incus/docs/main/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-incus-and-docker
+#
+echo "net.ipv4.conf.all.forwarding=1" > /etc/sysctl.d/99-forwarding.conf
+systemctl restart systemd-sysctl
+
+################################################################################
+#
 # Add local user to incus-admin group (only for new shells)
+#
 INCUS_USER=${SUDO_USER}
 [ -z ${INCUS_USER} ] && INCUS_USER=${USER}
 usermod -aG incus-admin ${INCUS_USER}
-
 
 ################################################################################
 #
