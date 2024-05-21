@@ -372,6 +372,7 @@ alias pg='less'
 alias cls='clear'
 alias btop='btop --utf-force'
 alias goroot='sudo -s'
+alias go64='sudo -s'
 
 # Change directory aliases
 alias home='cd ~'
