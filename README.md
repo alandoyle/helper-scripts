@@ -20,3 +20,4 @@ Installer scripts included
 - Docker installer
 - VSCode installer
 - PiHole Cloudflare/Quad9 installers
+- Incus Installer (Debian 12 or higher only)

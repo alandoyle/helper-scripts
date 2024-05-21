@@ -456,7 +456,7 @@ function dkxc() {
 }
 
 # sudo quick shortcuts
-alias reboot='sudo reboot'
+alias reboot='sudo /usr/sbin/reboot'
 alias suvi='sudo vi'
 alias sunano='sudo nano'
 alias surm='sudo rm'
@@ -465,7 +465,8 @@ alias mount='sudo /usr/bin/mount'
 alias umount='sudo /usr/bin/umount'
 alias iotop='sudo /usr/sbin/iotop'
 alias apt='sudo nala'
-alias powertop='sudo powertop'
+alias powertop='sudo /usr/sbin/powertop'
+alias systemctl='sudo /usr/bin/systemctl'
 
 EOF
 

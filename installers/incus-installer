@@ -1,0 +1,88 @@
+#!/bin/bash
+#
+# incus-installer is a simple installer for Incus.
+# 
+# Copyright (C) 2024 Alan Doyle
+#
+# https://github.com/alandoyle/helper-scripts/
+#
+# Install using:
+#     sudo bash -c "$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/incus-installer)"
+#
+################################################################################
+#
+# Root check
+#
+if [ `id -u` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+
+################################################################################
+#
+# Debian 12 (or higher) check
+#
+VERSION_ID="0"
+VERSION_CODENAME=unknown
+ID=unknown
+. /etc/os-release
+if [ "${ID}" != "debian" -a $VERSION_ID -lt 12 ] ; then
+    echo "ERROR: This script needs to be run on Debian 12 (bookworm) or higher."
+    exit 98
+fi
+
+################################################################################
+#
+# Add bookworm backports
+#
+if [ "${VERSION_CODENAME}" = "bookworm" ] ; then
+    cat << EOF | tee /etc/apt/sources.list.d/backports.list >/dev/null
+#
+# Bookworm Backports
+#
+deb http://deb.debian.org/debian bookworm-backports main
+deb-src http://deb.debian.org/debian bookworm-backports main
+EOF
+fi
+apt update
+
+################################################################################
+#
+# Install Incus
+#
+apt install bridge-utils incus -y
+
+################################################################################
+#
+# Add local user to incus-admin group (only for new shells)
+INCUS_USER=${SUDO_USER}
+[ -z ${INCUS_USER} ] && INCUS_USER=${USER}
+usermod -aG incus-admin ${INCUS_USER}
+
+
+################################################################################
+#
+# Add Incus aliases
+#
+cat << EOF | tee /etc/profile.d/incus.sh >/dev/null
+#
+# Incus Aliases
+#
+alias lxc='incus'
+alias lslx='incus ls -c4ns'
+alias lxrm='incus delete'
+alias lxnew='incus launch images:debian/${VERSION_ID}'
+alias lxup='incus start'
+alias lxdn='incus stop'
+alias lxrs='incus restart'
+function lxxc() {
+        incus exec \${1} /bin/bash
+}
+EOF
+
+################################################################################
+#
+# Show Incus version
+#
+echo "Incus v`incus --version` installed."
+echo "Logout and back in again to complete install."
