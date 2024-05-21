@@ -457,9 +457,12 @@ function dkxc() {
 
 # sudo quick shortcuts
 alias reboot='sudo /usr/sbin/reboot'
-alias suvi='sudo vi'
-alias sunano='sudo nano'
-alias surm='sudo rm'
+alias su-vi='sudo vi'
+alias su-nano='sudo nano'
+alias su-rm='sudo rm'
+alias su-cp='sudo cp'
+alias su-mv='sudo mv'
+alias su-md='sudo mkdir -p'
 alias dmesg='sudo /usr/bin/dmesg'
 alias mount='sudo /usr/bin/mount'
 alias umount='sudo /usr/bin/umount'
