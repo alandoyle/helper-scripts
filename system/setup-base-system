@@ -447,15 +447,6 @@ function usedg() {
     du --block-size=1G "\$1" | tail -1
 }
 
-# Docker support
-alias dkup='docker compose up -d'
-alias dkdn='docker compose down'
-alias dkps='docker ps --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Ports}}"'
-alias dkrs='docker compose down && docker compose up -d'
-function dkxc() {
-    docker exec -it "\$1" /bin/sh
-}
-
 # sudo quick shortcuts
 alias reboot='sudo /usr/sbin/reboot'
 alias su-vi='sudo vi'

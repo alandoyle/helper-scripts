@@ -1,0 +1,279 @@
+#!/bin/bash
+#
+# certbot-cloudflare-installer is a simple installer for Certbot with Cloudflare DNS-01 auth method.
+# 
+# Copyright (C) 2024 Alan Doyle
+#
+# https://github.com/alandoyle/helper-scripts/
+#
+# Install using:
+#     sudo bash -c "$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/certbot-cloudflare-installer)"
+#
+################################################################################
+#
+# Root check
+#
+if [ `id -u` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+
+################################################################################
+#
+# Install Certbot and Cloudflare Plugin
+#
+apt update
+apt install certbot python3-certbot-dns-cloudflare -y
+
+################################################################################
+#
+# Configure Certbot
+#
+[ ! -d /opt/cloudflare ] && mkdir -p /opt/cloudflare
+
+# Ensure we have an email address as that's required for use with Lets Encrypt
+EMAIL=
+[ -f /opt/cloudflare/email ] && EMAIL=`cat /opt/cloudflare/email`
+while [ -z ${TMPEMAIL} ] ; do
+    read -p "What email address do you wish to use with Lets Encrypt [${EMAIL}] ? " TMPEMAIL
+    [ -z ${TMPEMAIL} ] && TMPEMAIL=${EMAIL}
+done
+echo EMAIL=${TMPEMAIL}
+echo "${TMPEMAIL}" > /opt/cloudflare/email
+EMAIL=${TMPEMAIL}
+
+# Ensure we have an API Token to use with Cloudflare DNS
+APITOKEN=
+[ -f /opt/cloudflare/credentials ] && APITOKEN=`grep dns_cloudflare_api_token /opt/cloudflare/credentials | cut -d= -f2 | sed -e 's/^[ \t]*//'`
+while [ -z ${TMPAPITOKEN} ] ; do
+    read -p "What is the API Token to use with Cloudflare [${APITOKEN}] ? " TMPAPITOKEN
+    [ -z ${TMPAPITOKEN} ] && TMPAPITOKEN=${APITOKEN}
+done
+echo APITOKEN=${TMPAPITOKEN}
+echo -e "# CloudFlare API token information\ndns_cloudflare_api_token = ${TMPAPITOKEN}" > /opt/cloudflare/credentials
+APITOKEN=${TMPAPITOKEN}
+
+# Set permissions
+chmod 600 /opt/cloudflare/credentials 2>/dev/null
+chmod 600 /opt/cloudflare/email 2>/dev/null
+
+################################################################################
+#
+# Create helper scripts
+#
+
+# gen-certs
+cat << EOF | tee /usr/local/bin/gen-certs >/dev/null
+#!/bin/bash
+#
+# gen-certs is a simple wrapper to produce Lets Encrypt certificates
+# authenticated against Cloudflare DNS using the DNS-01 auth method.
+#
+# Copyright (C) 2024 Alan Doyle
+#
+################################################################################
+#
+# Root check
+#
+if [ \`id -u\` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+#
+################################################################################
+#
+WILDCARD=false
+EMAIL=
+APITOKEN=
+DOMAIN=
+#
+################################################################################
+#
+if [ \$# -gt 2 -o \$# -eq 0 ]; then
+    echo "\`basename \$0\` [OPTIONS] <DOMAINNAME>"
+    echo "Options:"
+    echo -e "\t-w\tinclude wildcard in certificate (Optional)."
+    echo -e "\nExamples:"
+    echo -e "\t\`basename \$0\` -w mydomain.com"
+    echo -e "\t\`basename \$0\` mydomain.com\n"
+    exit 1
+fi
+#
+################################################################################
+#
+case \$1 in
+        -w)     DOMAIN=\$2
+                WILDCARD=true ;;
+         *)     if [ \$# -eq 2 ]; then DOMAIN=\$2;
+                else DOMAIN=\$1; fi
+                ;;
+esac
+#
+################################################################################
+#
+if [ -z \$DOMAIN ] ; then
+     echo "ERROR: No domain provided!"
+     exit 98
+fi
+#
+################################################################################
+#
+if [ ! -f /opt/cloudflare/email ] ; then
+     echo -e "ERROR: Email address missing!\nPlease re-run the install."
+     exit 97
+fi
+#
+################################################################################
+#
+if [ ! -f /opt/cloudflare/credentials ] ; then
+     echo -e "ERROR: Cloudflare credentials missing!\nPlease re-run the install."
+     exit 96
+fi
+#
+################################################################################
+#
+EMAIL=\`cat /opt/cloudflare/email\`
+#
+if [ "\${WILDCARD}" = "true" ]; then
+                echo "Generating WILDCARD certificate for \${DOMAIN} (\${EMAIL})"
+        certbot certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials -m \${EMAIL} --agree-tos --no-eff-email --dns-cloudflare-propagation-seconds 30 --cert-name \${DOMAIN} -d \${DOMAIN} -d "*.\${DOMAIN}" --server https://acme-v02.api.letsencrypt.org/directory
+else
+        echo "Generating certificate for \${DOMAIN} (\${EMAIL})"
+        certbot certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials -m \${EMAIL} --agree-tos --no-eff-email --dns-cloudflare-propagation-seconds 30 --cert-name \${DOMAIN} -d \${DOMAIN} --server https://acme-v02.api.letsencrypt.org/directory
+fi
+exit \$?
+#
+################################################################################
+EOF
+
+# renew-certs
+cat << EOF | tee /usr/local/bin/renew-certs >/dev/null
+#!/bin/bash
+#
+# renew-certs is a simple wrapper to renew Lets Encrypt certificates
+# authenticated against Cloudflare DNS using the DNS-01 auth method.
+#
+# Copyright (C) 2024 Alan Doyle
+#
+################################################################################
+#
+# Root check
+#
+if [ \`id -u\` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+#
+################################################################################
+#
+if [ ! -f /opt/cloudflare/credentials ] ; then
+    echo "ERROR: Cloudflare credentials missing!"
+    exit 98
+fi
+#
+################################################################################
+#
+echo "Renewing Certificates"
+certbot renew --non-interactive --no-self-upgrade --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials --agree-tos --server https://acme-v02.api.letsencrypt.org/directory
+exit \$?
+#
+################################################################################
+EOF
+
+# test-certbot
+cat << EOF | tee /usr/local/bin/test-certbot >/dev/null
+#!/bin/bash
+#
+# test-certbot is a simple wrapper to test the Lets Encrypt configuration.
+#
+# Copyright (C) 2024 Alan Doyle
+#
+################################################################################
+#
+# Root check
+#
+if [ \`id -u\` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+#
+################################################################################
+#
+EMAIL=
+DOMAIN=\$1
+#
+################################################################################
+#
+if [ -z \$DOMAIN ] ; then
+     echo "ERROR: No domain provided!"
+     exit 98
+fi
+#
+################################################################################
+#
+if [ ! -f /opt/cloudflare/email ] ; then
+     echo -e "ERROR: Email address missing!\nPlease re-run the install."
+     exit 97
+fi
+#
+################################################################################
+#
+if [ ! -f /opt/cloudflare/credentials ] ; then
+     echo -e "ERROR: Cloudflare credentials missing!\nPlease re-run the install."
+     exit 96
+fi
+#
+################################################################################
+#
+EMAIL=\`cat /opt/cloudflare/email\`
+#
+#################################################################################
+#
+echo "Generating certificate for \${DOMAIN} (\${EMAIL}) - DRY RUN"
+certbot certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials /opt/cloudflare/credentials -m \${EMAIL} --agree-tos --no-eff-email --dns-cloudflare-propagation-seconds 30 --cert-name \${DOMAIN} -d \${DOMAIN} --server https://acme-v02.api.letsencrypt.org/directory --dry-run
+exit \$?
+#
+################################################################################
+EOF
+
+################################################################################
+#
+# Stop old Certbot systemd service
+#
+systemctl stop certbot.timer
+systemctl disable certbot.timer
+systemctl stop certbot.service
+systemctl disable certbot.service
+
+# New Cloudflare systemd timer
+cat << EOF | tee  /usr/lib/systemd/system/certbot-cf.timer >/dev/null
+[Unit]
+Description=Run Certbot (Cloudflare DNS-01) twice daily
+
+[Timer]
+OnCalendar=*-*-* 00,12:00:00
+RandomizedDelaySec=43200
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+# New Cloudflare systemd service
+cat << EOF | tee  /usr/lib/systemd/system/certbot-cf.service >/dev/null
+[Unit]
+Description=Certbot (Cloudflare DNS-01)
+Documentation=file:///usr/share/doc/python-certbot-doc/html/index.html
+Documentation=https://certbot.eff.org/docs
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/renew-certs > /var/log/letsencrypt/renew-certs.log
+PrivateTmp=true
+EOF
+
+# Refresh systemd
+systemctl daemon-reload
+
+# Start timer
+systemctl enable certbot-cf.timer
+systemctl start certbot-cf.timer

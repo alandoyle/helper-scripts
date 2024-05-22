@@ -43,6 +43,23 @@ usermod -aG docker ${DOCKER_USER}
 
 ################################################################################
 #
+# Add Docker aliases
+#
+cat << EOF | tee /etc/profile.d/docker.sh >/dev/null
+#
+# Docker Aliases
+#
+alias dkup='docker compose up -d'
+alias dkdn='docker compose down'
+alias dkps='docker ps --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Ports}}"'
+alias dkrs='docker compose down && docker compose up -d'
+function dkxc() {
+    docker exec -it "\$1" /bin/sh
+}
+EOF
+
+################################################################################
+#
 # Create docker-compose shim
 #
 cat << EOF | tee /usr/local/bin/docker-compose >/dev/null
