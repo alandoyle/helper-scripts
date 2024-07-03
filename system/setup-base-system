@@ -27,13 +27,29 @@ fi
 #
 ################################################################################
 #
+. /etc/os-release
+if [ "${VERSION_CODENAME}" = "jammy" ] ; then
+	cat <<EOF >/etc/apt/sources.list.d/backports.list
+deb http://archive.ubuntu.com/ubuntu jammy-backports main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu jammy-backports main restricted universe multiverse
+EOF
+	cat <<EOF >/etc/apt/preferences.d/backports.pref
+Package: *
+Pin: release a=jammy-backports
+Pin-Priority: 500
+EOF
+fi
+#
+################################################################################
+#
 echo "Upgrade system (please be patient)"
 apt-get update &>/dev/null
 apt-get -y dist-upgrade &>/dev/null
+#
 ################################################################################
 #
 echo "Adding additional applications"
-apt-get -y install neovim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors neofetch zip unzip btop exa iotop nala plocate rsync powertop command-not-found &>/dev/null
+apt-get -y install neovim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors neofetch lolcat zip unzip btop exa iotop nala plocate rsync powertop command-not-found &>/dev/null
 #
 #################################################################################
 #
@@ -319,7 +335,7 @@ EOF
 cat <<EOF >/etc/profile.d/sysinfo.sh
 if [ "\${SUDO_USER}" = "" ] ; then
 	clear
-	neofetch
+	neofetch|lolcat
 fi
 EOF
 
@@ -348,7 +364,6 @@ fi
 EOF
 
 # Check if we're installing on Debian as it has a differnet /root/.bashrc to Ubuntu
-. /etc/os-release
 grep "PROFILE UPDATE" /root/.bashrc >/dev/null 2>&1
 if [ $? -ne 0 -a "${ID}" = "debian" ] ; then
 	echo "Updating /root/.bashrc"
