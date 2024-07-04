@@ -95,7 +95,7 @@ set ttyfast                 " Speed up scrolling in Vim
 " set backupdir=~/.cache/vim " Directory to store backup files.
 EOF
 fi
-if [ !  -f /etc/vim/vimrc.local && -d /etc/vim ] ; then
+if [ !  -f /etc/vim/vimrc.local -a -d /etc/vim ] ; then
     cat <<EOF >/etc/vim/vimrc.local
 if filereadable("\$VIMRUNTIME/defaults.vim")
   source \$VIMRUNTIME/defaults.vim
