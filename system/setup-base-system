@@ -49,7 +49,17 @@ apt-get -y dist-upgrade &>/dev/null
 ################################################################################
 #
 echo "Adding additional applications"
-apt-get -y install neovim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors neofetch lolcat zip unzip btop exa iotop nala plocate rsync powertop command-not-found &>/dev/null
+apt-get -y install neovim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors zip unzip btop exa iotop nala plocate rsync powertop command-not-found &>/dev/null
+#
+################################################################################
+#
+echo "Installing FASTFETCH (`uname -m`)"
+FASTFETCH_URL=https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb
+if [ "`uname -m`" = "aarch64" ] ; then
+	FASTFETCH_URL=https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-aarch64.deb
+fi
+curl --fail --silent --location --output /tmp/fastfetch-linux.deb "${FASTFETCH_URL}"
+dpkg -i /tmp/fastfetch-linux.deb &>/dev/null
 #
 #################################################################################
 #
@@ -330,12 +340,12 @@ if [ ! -f ~/.config/nvim/init.vim ] ; then
 fi
 EOF
 
-# Neofetch
+# Fastfetch
 [ -f /etc/profile.d/neofetch.sh ] && rm /etc/profile.d/neofetch.sh
 cat <<EOF >/etc/profile.d/sysinfo.sh
 if [ "\${SUDO_USER}" = "" ] ; then
 	clear
-	neofetch|lolcat
+	fastfetch
 fi
 EOF
 
