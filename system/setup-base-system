@@ -515,17 +515,20 @@ cat <<EOF >/usr/local/bin/update-base-system
 #
 # Update System
 #
+echo "Updating BASE system..."
 sudo bash -c "\$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/setup-base-system)"
 #
 # Update INCUS if it is installer
 #
 if [ -f /usr/bin/incus ] ; then
+	echo "Updating INCUS..."
 	sudo bash -c "\$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/incus-installer)"
 fi
 #
 # Update DOCKER if it is installer
 #
 if [ -f /usr/bin/docker ] ; then
+	echo "Updating DOCKER..."
 	sudo bash -c "\$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/docker-installer)"
 fi
 EOF
