@@ -523,7 +523,7 @@ sudo bash -c "\$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-
 if [ -f /usr/bin/incus ] ; then
 	echo "Updating INCUS..."
 	sudo bash -c "\$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/incus-installer)" &>/dev/null
-	echo "Incus v`incus --version` installed."
+	echo "Incus v\`incus --version\` installed."
 	echo "Logout and back in again to complete install."
 fi
 #
@@ -532,7 +532,7 @@ fi
 if [ -f /usr/bin/docker ] ; then
 	echo "Updating DOCKER..."
 	sudo bash -c "\$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/docker-installer)" &>/dev/null
-	echo "`docker --version` installed."
+	echo "\`docker --version\` installed."
 	echo "Logout and back in again to complete install."
 fi
 EOF
