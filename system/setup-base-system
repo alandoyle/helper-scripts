@@ -95,7 +95,7 @@ set ttyfast                 " Speed up scrolling in Vim
 " set backupdir=~/.cache/vim " Directory to store backup files.
 EOF
 fi
-if [ !  -f /etc/vim/vimrc.local ] ; then
+if [ !  -f /etc/vim/vimrc.local && -d /etc/vim ] ; then
     cat <<EOF >/etc/vim/vimrc.local
 if filereadable("\$VIMRUNTIME/defaults.vim")
   source \$VIMRUNTIME/defaults.vim
@@ -344,9 +344,18 @@ EOF
 [ -f /etc/profile.d/neofetch.sh ] && rm /etc/profile.d/neofetch.sh
 cat <<EOF >/etc/profile.d/sysinfo.sh
 if [ "\${SUDO_USER}" = "" ] ; then
-	clear
-	fastfetch
+    clear
+    fastfetch
+    if [ -f /usr/bin/incus ] ; then
+        echo -e "\n\tINCUS CONTAINERS"
+        incus ls -cns4
+    fi
+    if [ -f /usr/bin/docker ] ; then
+        echo -e "\n\tDOCKER CONTAINERS\n-------------------------------------------------------------------------------"
+        docker ps --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Ports}}"
+    fi
 fi
+
 EOF
 
 # Terminal
@@ -497,7 +506,30 @@ if [ \$? -ne 0 -o "\${SUDO_USER}" != "" ] ; then
 	. /etc/profile
 fi
 EOF
-
+#
+################################################################################
+#
+echo "Creating Update Script (/usr/local/bin/update-base-system)"
+cat <<EOF >/usr/local/bin/update-base-system
+#!/bin/bash
+#
+# Update System
+#
+sudo bash -c "\$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/setup-base-system)"
+#
+# Update INCUS if it is installer
+#
+if [ -f /usr/bin/incus ] ; then
+	sudo bash -c "\$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/incus-installer)"
+fi
+#
+# Update DOCKER if it is installer
+#
+if [ -f /usr/bin/docker ] ; then
+	sudo bash -c "\$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/docker-installer)"
+fi
+EOF
+chmod a+x /usr/local/bin/update-base-system
 #
 ################################################################################
 #
