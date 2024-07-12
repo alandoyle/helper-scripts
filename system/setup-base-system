@@ -354,6 +354,14 @@ if [ "\${SUDO_USER}" = "" ] ; then
         echo -e "\n\tDOCKER CONTAINERS\n-------------------------------------------------------------------------------"
         docker ps --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Ports}}"
     fi
+    if [ -f /usr/sbin/pct ] ; then
+        echo -e "\n\tLXC CONTAINERS\n-------------------------------------------------------------------------------"
+        sudo /usr/sbin/pct list
+    fi
+    if [ -f  /usr/sbin/qm ] ; then
+        echo -e "\n\tKVM MACHINES\n-------------------------------------------------------------------------------"
+        sudo /usr/sbin/qm list
+    fi
 fi
 
 EOF
