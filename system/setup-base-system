@@ -381,7 +381,7 @@ cat <<EOF >/etc/profile.d/starship.sh
 tty | grep tty >/dev/null
 
 # Only display for remote connections
-if [ -f /usr/local/bin/starshipi -a $\? -ne 0 ] ; then
+if [ -f /usr/local/bin/starship -a \$? -ne 0 ] ; then
 	[ ! -d ~/.config ] && mkdir -p ~/.config
 	[ -f ~/.config/starship.toml ] && rm -f ~/.config/starship.toml
 	if [ \`id -u\` -eq 0 ] ; then
