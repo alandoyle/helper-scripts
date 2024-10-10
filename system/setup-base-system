@@ -482,15 +482,9 @@ extract () {
 }
 
 # Disk usage support
-function used() {
-    du -sh "\$1"
-}
-function usedm() {
-    du -s --block-size=1M "\$1"
-}
-function usedg() {
-    du -s --block-size=1G "\$1"
-}
+alias used='du -sh'
+alias usedm='du -s --block-size=1M"
+alias usedg='du -s --block-size=1G'
 
 # sudo quick shortcuts
 alias reboot='sudo /usr/sbin/reboot'
