@@ -393,7 +393,7 @@ if [ -f /usr/local/bin/starshipi -a $\? -ne 0 ] ; then
 fi
 EOF
 
-# Check if we're installing on Debian as it has a differnet /root/.bashrc to Ubuntu
+# Check if we're installing on Debian as it has a different /root/.bashrc to Ubuntu
 grep "PROFILE UPDATE" /root/.bashrc >/dev/null 2>&1
 if [ $? -ne 0 -a "${ID}" = "debian" ] ; then
 	echo "Updating /root/.bashrc"
@@ -483,13 +483,13 @@ extract () {
 
 # Disk usage support
 function used() {
-    du -h "\$1"| tail -1
+    du -sh "\$1"| tail -1
 }
 function usedm() {
-    du --block-size=1M "\$1" | tail -1
+    du -s --block-size=1M "\$1"
 }
 function usedg() {
-    du --block-size=1G "\$1" | tail -1
+    du -s --block-size=1G "\$1"
 }
 
 # sudo quick shortcuts
