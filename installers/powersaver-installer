@@ -34,7 +34,7 @@ fi
 #
 # Install prerequisites
 #
-apt -y install powertop
+apt install powertop -y
 
 ################################################################################# Create scripts
 #
