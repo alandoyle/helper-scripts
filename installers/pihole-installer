@@ -112,58 +112,5 @@ rm /etc/dnsmasq.d/01-pihole.conf.$$
 echo server=127.0.0.1#5053 >> /etc/dnsmasq.d/01-pihole.conf
 
 ################################################################################
-# Create a 'genlist' command to export /etc/hosts.lan to Pi-Hole custom.list
-cat << EOF > /usr/local/bin/genlist
-#!/usr/bin/env bash
-#
-#
-
-HOST_FILE=/etc/hosts.lan
-
-# Check for override configuration
-[ -f /etc/default/genlist ] && . /etc/default/genlist
-
-# Check if custom hosts file exists, if not then that's OK too.
-[ ! -f \${HOST_FILE} ] && exit 0
-
-# Start building the custom.list
-OUTPUT_FILE=/etc/pihole/custom.list
-CUSTOM_HOSTS=\`cat \${HOST_FILE}|sed '/^[[:space:]]*\$/d'|sed '/^#/d'\`
-echo "[+] Building Custom Host Entries for Pi-Hole"
-echo "  [i] Source: \${HOST_FILE}"
-echo "  [i] Destination: \${OUTPUT_FILE}"
-
-while IFS= read -r line
-do
-
-   IFS=' ' read -r -a array <<< "\$line"
-   IPADDRESS=\${array[0]}
-   unset "array[0]"
-   for HOSTNAME in "\${array[@]}"
-   do
-       echo "\$IPADDRESS \$HOSTNAME"
-   done
-done < <(printf '%s\n' "\$CUSTOM_HOSTS") > \${OUTPUT_FILE}
-HOSTCOUNT=\`cat \${OUTPUT_FILE} | wc -l\`
-echo "  [i] Added \${HOSTCOUNT} custom entries"
-echo "[+] Refreshing Pi-Hole"
-pihole -g
-
-EOF
-chmod a+x /usr/local/bin/genlist
-/usr/local/bin/genlist
-
-# add cron rule
-CRON='/etc/cron.hourly/genlist'
-if [ -d /etc/cron.hourly ] ; then
-    cat << EOF > "${CRON}"
-#!/usr/bin/env bash
-/usr/local/bin/genlist > /var/log/genlist.log
-EOF
-    chmod +x "${CRON}"
-fi
-
-
-################################################################################
 # Reboot
 reboot
