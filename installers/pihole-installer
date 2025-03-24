@@ -77,7 +77,7 @@ EOF
 
         ########################################################################
         # Add this repo to your apt repositories
-        echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared ${VERSION_CODENAME} main' | sudo tee /etc/apt/sources.list.d/cloudflared.list >/dev/null
+        echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared ${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/cloudflared.list >/dev/null
 
         ########################################################################
         # install cloudflared
