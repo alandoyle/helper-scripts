@@ -104,7 +104,7 @@ fi
 
 ################################################################################
 # Basic Pi-Hole configuration
-pihole -a -p
+pihole setpassword
 #pihole -w analytics.twitter.com dl.delivery.mp.microsoft.com geo-prod.do.dsp.mp.microsoft.com spclient.wg.spotify.com
 #pihole -b activity.windows.com msedge.net assets.msn.com edge.microsoft.com
 sleep 5
@@ -122,6 +122,12 @@ pihole-FTL --config misc.etc_dnsmasq_d true
 cat << EOF > /etc/dnsmasq.d/09-ttl.conf
 # See https://00f.net/2019/11/03/stop-using-low-dns-ttls/ for more rational.
 min-cache-ttl=2400
+EOF
+
+################################################################################
+# Setup an additional "Local DNS" host file
+cat << EOF > /etc/dnsmasq.d/09-localdns.conf
+# Add additional hosts here for local DNS resolution.
 EOF
 
 ################################################################################
