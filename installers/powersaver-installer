@@ -2,7 +2,7 @@
 #
 # powersaver-installer is a Configurable PowerSaver installer.
 # 
-# Copyright (C) 2022 Alan Doyle
+# Copyright (C) 2022-2025 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 # 
@@ -34,7 +34,13 @@ fi
 #
 # Install prerequisites
 #
-apt install powertop -y
+apt install curl powertop -y
+
+################################################################################
+#
+# Download latest AutoAPSM script
+#
+curl https://raw.githubusercontent.com/notthebee/AutoASPM/refs/heads/main/autoaspm.py -so /usr/local/bin/autoaspm.py
 
 ################################################################################# Create scripts
 #
@@ -45,7 +51,7 @@ cat << EOF > /usr/sbin/init-powersaver
 #
 # Initialise PowerSaver
 # 
-# Copyright (C) 2022 Alan Doyle
+# Copyright (C) 2022-2025 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
@@ -57,6 +63,12 @@ if [ \`id -u\` -ne 0 ] ; then
     echo "ERROR: This script needs to be run as root or using sudo."
     exit 99
 fi
+
+################################################################################
+#
+# Enable AutoASPM savings
+#
+/usr/local/bin/autoaspm.py
 
 ################################################################################
 #
@@ -90,6 +102,7 @@ fi
 ################################################################################
 # Set permissions
 #
+chmod 755 /usr/local/bin/autoaspm.py
 chmod 755 /usr/sbin/init-powersaver
 chmod 644 /etc/powersaver.d/custom-rules.conf
 
