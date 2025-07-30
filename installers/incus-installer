@@ -96,7 +96,7 @@ cat << EOF | tee /etc/profile.d/incus.sh >/dev/null
 alias lxc='incus'
 alias lslx='incus ls -c4ns'
 alias lxrm='incus delete'
-alias lxnew='incus launch images:debian/\${VERSION_ID}'
+alias lxnew="incus launch images:debian/\${VERSION_ID}"
 alias lxup='incus start'
 alias lxdn='incus stop'
 alias lxrs='incus restart'
