@@ -2,7 +2,7 @@
 #
 # incus-installer is a simple installer for Incus.
 #
-# Copyright (C) 2024 Alan Doyle
+# Copyright (C) 2024-2205 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
@@ -24,6 +24,7 @@ fi
 #
 VERSION_ID="0"
 VERSION_CODENAME=unknown
+INCUS_PKG=incus-base
 ID=unknown
 . /etc/os-release
 if [ "${ID}" != "debian" -a $VERSION_ID -lt 12 ] ; then
@@ -33,31 +34,39 @@ fi
 
 ################################################################################
 #
-# Add bookworm backports (if necessary, not required on Armbian)
+# Add bookworm backports (if necessary), not required on Armbian/Trixie/Sid
 #
-NEED_BACKPORTS=TRUE
-grep bookworm-backports /etc/apt/sources.list >/dev/null
-[ $? -eq 0 ] && NEED_BACKPORTS=FALSE
-grep bookworm-backports /etc/apt/sources.list.d/*.list >/dev/null
-[ $? -eq 0 ] && NEED_BACKPORTS=FALSE
+if [ "${VERSION_CODENAME}" = "bookworm" ] ; then
+    NEED_BACKPORTS=TRUE
+    grep bookworm-backports /etc/apt/sources.list >/dev/null
+    [ $? -eq 0 ] && NEED_BACKPORTS=FALSE
+    grep bookworm-backports /etc/apt/sources.list.d/*.list >/dev/null
+    [ $? -eq 0 ] && NEED_BACKPORTS=FALSE
 
-if [ "${VERSION_CODENAME}" = "bookworm" -a "${NEED_BACKPORTS}" = "TRUE" ] ; then
-    echo "Adding Backports Repository"
-    cat << EOF | tee /etc/apt/sources.list.d/backports.list >/dev/null
+    if [ "${NEED_BACKPORTS}" = "TRUE" ] ; then
+        echo "Adding Backports Repository"
+        cat << EOF | tee /etc/apt/sources.list.d/backports.list >/dev/null
 #
 # Bookworm Backports
 #
 deb http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware
 deb-src http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware
 EOF
+    fi
+    INCUS_PKG=incus-base/bookworm-backports
 fi
-apt update
+
+################################################################################
+#
+# Make sure system is up-to-date before continuing
+#
+apt update && apt upgrade -y
 
 ################################################################################
 #
 # Install Incus Base (as per https://discuss.linuxcontainers.org/t/incus-deinstalled-after-upgrade-in-debian-bookworm-with-backports/23209)
 #
-apt install bridge-utils incus-base/bookworm-backports -y
+apt install bridge-utils ${INCUS_PKG} -y
 
 ################################################################################
 #
@@ -80,13 +89,14 @@ usermod -aG incus-admin ${INCUS_USER}
 # Add Incus aliases
 #
 cat << EOF | tee /etc/profile.d/incus.sh >/dev/null
+. /etc/os-release
 #
 # Incus Aliases
 #
 alias lxc='incus'
 alias lslx='incus ls -c4ns'
 alias lxrm='incus delete'
-alias lxnew='incus launch images:debian/${VERSION_ID}'
+alias lxnew='incus launch images:debian/\${VERSION_ID}'
 alias lxup='incus start'
 alias lxdn='incus stop'
 alias lxrs='incus restart'
