@@ -3,7 +3,7 @@
 # enable-super-sudo is a simple command to enable paswordless sudo for all
 # sudo users. If no sudo users are found it'll prompt to create one.
 #
-# Copyright (C) 2022-2023 Alan Doyle
+# Copyright (C) 2022-2025 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
@@ -78,7 +78,7 @@ function check_sudo_users()
 {
     SUDO_USERS=`cat /etc/group | grep sudo | cut -d: -f4`
     if [ -z "${SUDO_USERS}" ] ; then
-        echo -ne "No 'sudo' users found!\nCreate one (Y/N)? "
+        echo -ne "No 'sudo' users found!\nCreate one (y/N)? "
         read ANS
         CREATE_SUDO_USER=`echo ${ANS}|cut -c1|tr [:lower:] [:upper:]`
     fi
@@ -118,7 +118,7 @@ function randomize_root_password()
     fi
 
     # Only randomize root password if there is a sudo user!
-    echo -n "Do you want to randomize the root password? (Y/N) "
+    echo -n "Do you want to randomize the root password? (y/N) "
     read ANS
     RANDOMIZE_ROOT_PASSWORD=`echo ${ANS}|cut -c1|tr [:lower:] [:upper:]`
 
