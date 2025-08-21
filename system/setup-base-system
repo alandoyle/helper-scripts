@@ -53,7 +53,7 @@ NEW_APPS=exa
 if [ "${VERSION_CODENAME}" = "trixie" ] ; then
    NEW_APPS="eza fastfetch"
 fi
-apt-get -y install ${NEW_APPS} neovim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop nala plocate rsync powertop command-not-found &>/dev/null
+apt-get -y install ${NEW_APPS} aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop nala plocate rsync powertop command-not-found &>/dev/null
 #
 ################################################################################
 #
@@ -72,35 +72,6 @@ fi
 echo "Configuring applications"
 apt-file update &>/dev/null
 update-command-not-found &>/dev/null
-if [ !  -f /etc/skel/.config/nvim/init.vim ] ; then
-	[ ! -d /etc/skel/.config/nvim ] && mkdir -p /etc/skel/.config/nvim
-	cat <<EOF >/etc/skel/.config/nvim/init.vim
-set nocompatible            " disable compatibility to old-time vi
-set showmatch               " show matching
-set ignorecase              " case insensitive
-" set mouse=v                 " middle-click paste with
-set hlsearch                " highlight search
-set incsearch               " incremental search
-set tabstop=4               " number of columns occupied by a tab
-set softtabstop=4           " see multiple spaces as tabstops so <BS> does the right thing
-set expandtab               " converts tabs to white space
-set shiftwidth=4            " width for autoindents
-set autoindent              " indent a new line the same amount as the line just typed
-" set number                  " add line numbers
-set wildmode=longest,list   " get bash-like tab completions
-" set cc=80                   " set an 80 column border for good coding style
-filetype plugin indent on   "allow auto-indenting depending on file type
-syntax on                   " syntax highlighting
-" set mouse=a                 " enable mouse click
-set clipboard=unnamedplus   " using system clipboard
-filetype plugin on
-" set cursorline              " highlight current cursorline
-set ttyfast                 " Speed up scrolling in Vim
-" set spell                 " enable spell check (may need to download language package)
-" set noswapfile            " disable creating swap file
-" set backupdir=~/.cache/vim " Directory to store backup files.
-EOF
-fi
 if [ !  -f /etc/vim/vimrc.local -a -d /etc/vim ] ; then
     cat <<EOF >/etc/vim/vimrc.local
 if filereadable("\$VIMRUNTIME/defaults.vim")
@@ -114,9 +85,6 @@ set mouse=
 syntax on
 EOF
 fi
-update-alternatives --set vi /usr/bin/nvim >/dev/null
-update-alternatives --set vim /usr/bin/nvim >/dev/null
-update-alternatives --set view /usr/libexec/neovim/view >/dev/null
 #
 ################################################################################
 #
@@ -337,14 +305,6 @@ rm -f /tmp/starship.tar.gz
 ################################################################################
 #
 echo "Updating BASH profile"
-
-# NeoVIM
-cat <<EOF >/etc/profile.d/neovim.sh
-if [ ! -f ~/.config/nvim/init.vim ] ; then
-	[ ! -d ~/.config/nvim ] && mkdir -p ~/.config/nvim
-	cp /etc/skel/.config/nvim/init.vim ~/.config/nvim
-fi
-EOF
 
 # Fastfetch
 [ -f /etc/profile.d/neofetch.sh ] && rm /etc/profile.d/neofetch.sh
