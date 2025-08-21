@@ -97,6 +97,7 @@ alias lxc='incus'
 alias lslx='incus ls -cns4 -f compact|grep eth0'
 alias lxrm='incus delete'
 alias lxnew="incus launch images:debian/\${VERSION_ID}"
+alias lxdknew="incus launch images:debian/\${VERSION_ID} -c security.nesting=true -c security.syscalls.intercept.mknod=true -c security.syscalls.intercept.setxattr=true"
 alias lxup='incus start'
 alias lxdn='incus stop'
 alias lxrs='incus restart'
