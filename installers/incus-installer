@@ -6,8 +6,22 @@
 #
 # https://github.com/alandoyle/helper-scripts/
 #
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see http://www.gnu.org/licenses/.
+#
 # Install using:
 #     sudo bash -c "$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/incus-installer)"
+# or
+#     sudo bash -c "$(curl -sSfL https://github.com/alandoyle/helper-scripts/raw/main/installers/incus-installer)"
 #
 ################################################################################
 #
@@ -94,7 +108,7 @@ cat << EOF | tee /etc/profile.d/incus.sh >/dev/null
 # Incus Aliases
 #
 alias lxc='incus'
-alias lslx='incus ls -cns4 -f compact|grep eth0'
+alias lslx='incus ls -cns4 -f compact|egrep "RUNNING|STOPPED"'
 alias lxrm='incus delete'
 alias lxnew="incus launch images:debian/\${VERSION_ID}"
 alias lxdknew="incus launch images:debian/\${VERSION_ID} -c security.nesting=true -c security.syscalls.intercept.mknod=true -c security.syscalls.intercept.setxattr=true"
@@ -108,7 +122,48 @@ EOF
 
 ################################################################################
 #
+# Set up the system as per https://documentation.ubuntu.com/lxd/stable-4.0/production-setup/
+#
+[ ! -f /etc/security/limits.conf.ORIG ] && mv /etc/security/limits.conf /etc/security/limits.conf.ORIG
+echo "Creating /etc/security/limits.conf"
+cat << EOF | tee /etc/security/limits.conf >/dev/null
+# /etc/security/limits.conf
+#
+
+#<domain>      <type>  <item>         <value>
+*				soft	nofile			1048576
+*				hard	nofile			1048576
+root			soft	nofile			1048576
+root			hard	nofile			1048576
+*				soft	memlock			unlimited
+*				hard	memlock			unlimited
+
+# End of file
+EOF
+
+SYSCTL_FILE=/etc/sysctl.d/99-incus.conf
+echo "Creating ${SYSCTL_FILE}"
+cat << EOF | tee ${SYSCTL_FILE} >/dev/null
+# LXC Settings
+#
+
+fs.aio-max-nr=524288
+fs.inotify.max_queued_events=1048576
+fs.inotify.max_user_instances=1048576
+fs.inotify.max_user_watches=1048576
+kernel.dmesg_restrict=1
+kernel.keys.maxbytes=2000000
+kernel.keys.maxkeys=20000
+net.ipv4.neigh.default.gc_thresh3=8192
+net.ipv6.neigh.default.gc_thresh3=8192
+vm.max_map_count=262144
+
+# End of file
+EOF
+
+################################################################################
+#
 # Show Incus version
 #
 echo "Incus v`incus --version` installed."
-echo "Logout and back in again to complete install."
+echo "Please 'reboot' to complete install."

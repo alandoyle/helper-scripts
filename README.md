@@ -1,11 +1,11 @@
 # helper-scripts
 
-A small collection of helper scripts for Ubuntu 22.04/Debian 12 (some of these will be replaced by Ansible when I get some time....)
+A small collection of helper scripts for Debian 12 (or highter) (some of these will be replaced by Ansible when I get some time....)
 
 System scripts included
 
+- Simple script to setup a base install of Debian 12/13 servers.
 - Enable "Super" sudo (passwordless sudo for members of the `sudo` group)
-- Simple script to setup a base install of Ubuntu/Debian servers.
 
 Installer scripts included
 
@@ -21,3 +21,4 @@ Installer scripts included
 - VSCode installer
 - PiHole Cloudflare/Quad9 installers
 - Incus Installer (Debian 12 or higher only)
+- Certbot with Cloudflare DNS-01 auth method installer

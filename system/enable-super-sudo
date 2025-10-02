@@ -9,7 +9,11 @@
 #
 # Install instructions:
 #
-#   bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/enable-super-sudo)"
+#   
+# Usage:
+#     bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/enable-super-sudo)"
+# or
+#     bash -c "$(curl -sSfL https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/enable-super-sudo)"
 #
 #set -x
 ################################################################################

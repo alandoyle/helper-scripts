@@ -2,7 +2,7 @@
 #
 # zswap-installer is a Configurable ZSwap installer.
 #
-# Copyright (C) 2022 Alan Doyle
+# Copyright (C) 2022-2025 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
@@ -17,6 +17,11 @@
 #
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see http://www.gnu.org/licenses/.
+#
+# Install using:
+#     sudo bash -c "$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/zswap-installer)"
+# or
+#     sudo bash -c "$(curl -sSfL https://github.com/alandoyle/helper-scripts/raw/main/installers/zswap-installer)"
 #
 ################################################################################
 #

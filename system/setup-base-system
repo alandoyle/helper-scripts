@@ -7,7 +7,9 @@
 # https://github.com/alandoyle/helper-scripts/main/system/setup-base-system
 #
 # Usage:
-#  sudo bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/setup-base-system)"
+#     bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/setup-base-system)"
+# or
+#     bash -c "$(curl -sSfL https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/setup-base-system)"
 #
 ################################################################################
 #
@@ -28,16 +30,9 @@ fi
 ################################################################################
 #
 . /etc/os-release
-if [ "${VERSION_CODENAME}" = "jammy" ] ; then
-	cat <<EOF >/etc/apt/sources.list.d/backports.list
-deb http://archive.ubuntu.com/ubuntu jammy-backports main restricted universe multiverse
-deb-src http://archive.ubuntu.com/ubuntu jammy-backports main restricted universe multiverse
-EOF
-	cat <<EOF >/etc/apt/preferences.d/backports.pref
-Package: *
-Pin: release a=jammy-backports
-Pin-Priority: 500
-EOF
+if [ "${ID}" = "ubuntu" ] ; then
+	echo "ERROR: Ubuntu is no longer supported."
+    exit 98
 fi
 #
 ################################################################################
@@ -53,7 +48,7 @@ NEW_APPS=exa
 if [ "${VERSION_CODENAME}" = "trixie" ] ; then
    NEW_APPS="eza fastfetch"
 fi
-apt-get -y install ${NEW_APPS} aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop nala plocate rsync powertop command-not-found &>/dev/null
+apt-get -y install ${NEW_APPS} vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop nala plocate rsync powertop command-not-found &>/dev/null
 #
 ################################################################################
 #
@@ -518,7 +513,16 @@ fi
 #
 ################################################################################
 #
-USERHOMEDIR=`grep ${SUDO_USER} /etc/passwd|cut -d: -f6`
+for USERNAME in $(ls -1 /home)
+do
+    USERHOMEDIR=/home/${USERNAME}
+	USERUID=`grep ${USERHOMEDIR} /etc/passwd | cut -d: -f3`
+	USERGID=`grep ${USERHOMEDIR} /etc/passwd | cut -d: -f4`
+	echo "Setting .hushlogin for ${USERNAME} (${USERHOMEDIR})"
+	touch ${USERHOMEDIR}/.hushlogin
+	chown ${USERUID}:${USERGID} ${USERHOMEDIR}/.hushlogin
+done
+
 if [ ! -z ${USERHOMEDIR} -a ! -f ${USERHOMEDIR}/.hushlogin ] ; then
 	echo "Setting .hushlogin for ${SUDO_USER} (${USERHOMEDIR})"
 	touch ${USERHOMEDIR}/.hushlogin

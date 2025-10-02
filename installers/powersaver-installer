@@ -1,25 +1,27 @@
 #!/bin/bash
 #
 # powersaver-installer is a Configurable PowerSaver installer.
-# 
+#
 # Copyright (C) 2022-2025 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
-# 
+#
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation, either version 3 of the License, or (at your option) any later
 # version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see http://www.gnu.org/licenses/.
 #
 # Install using:
 #     sudo bash -c "$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/powersaver-installer)"
+# or
+#     sudo bash -c "$(curl -sSfL https://github.com/alandoyle/helper-scripts/raw/main/installers/powersaver-installer)"
 #
 ################################################################################
 #
@@ -50,7 +52,7 @@ cat << EOF > /usr/sbin/init-powersaver
 #!/bin/sh
 #
 # Initialise PowerSaver
-# 
+#
 # Copyright (C) 2022-2025 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
@@ -66,15 +68,15 @@ fi
 
 ################################################################################
 #
-# Enable AutoASPM savings
-#
-/usr/local/bin/autoaspm.py
-
-################################################################################
-#
 # Enable all PowerTOP savings
 #
 /usr/sbin/powertop --auto-tune
+
+################################################################################
+#
+# Enable AutoASPM savings
+#
+/usr/local/bin/autoaspm.py
 
 ################################################################################
 #
