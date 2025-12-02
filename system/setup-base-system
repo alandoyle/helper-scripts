@@ -48,7 +48,7 @@ NEW_APPS=exa
 if [ "${VERSION_CODENAME}" = "trixie" ] ; then
    NEW_APPS="eza fastfetch"
 fi
-apt-get -y install ${NEW_APPS} vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop nala plocate rsync powertop command-not-found &>/dev/null
+apt-get -y install ${NEW_APPS} vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop plocate rsync powertop command-not-found &>/dev/null
 #
 ################################################################################
 #
@@ -459,7 +459,7 @@ alias dmesg='sudo /usr/bin/dmesg'
 alias mount='sudo /usr/bin/mount'
 alias umount='sudo /usr/bin/umount'
 alias iotop='sudo /usr/sbin/iotop'
-alias apt='sudo nala'
+alias apt='sudo /usr/bin/apt'
 alias powertop='sudo /usr/sbin/powertop'
 alias systemctl='sudo /usr/bin/systemctl'
 
