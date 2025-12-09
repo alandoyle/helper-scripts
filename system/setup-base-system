@@ -324,9 +324,13 @@ if [ "\${SUDO_USER}" = "" ] ; then
         sudo /usr/sbin/qm list
     fi
 fi
+EOF
 
-if [ -f /var/run/reboot-required ] ; then tput setaf 3;echo REBOOT REQUIRED; fi
-
+# Reboot Required
+cat <<EOF >/etc/profile.d/reboot-required.sh
+if [ ! -f /var/run/reboot-required ] ; then
+	tput setaf 1;echo [REBOOT REQUIRED];
+fi
 EOF
 
 # Terminal
@@ -375,7 +379,7 @@ fi
 echo "[ -f /etc/bash.aliases ] && . /etc/bash.aliases" > /etc/profile.d/aliases.sh
 cat <<EOF >/etc/bash.aliases
 
-alias dfspace='df -hT -x udev -x tmpfs -x cgmfs -x snap -x devtmpfs -x fuse -x overlay -x efivarfs'
+alias dfspace='df -hT -x cgmfs -x snap -x devtmpfs -x fuse -x overlay -x efivarfs | egrep -v "shm|run/|/tmp"'
 alias pg='less'
 alias cls='clear'
 alias btop='btop --utf-force'
@@ -882,7 +886,8 @@ fi
 #
 ################################################################################
 #
+. /etc/bash.aliases
 date > /var/run/reboot-required
-tput setaf 3;echo REBOOT REQUIRED;
+tput setaf 1;echo REBOOT REQUIRED;
 #
 ################################################################################
