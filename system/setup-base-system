@@ -327,8 +327,9 @@ fi
 EOF
 
 # Reboot Required
-cat <<EOF >/etc/profile.d/reboot-required.sh
-if [ ! -f /var/run/reboot-required ] ; then
+[ -f /etc/profile.d/reboot-required.sh ] && rm -f /etc/profile.d/reboot-required.sh
+cat <<EOF >/etc/profile.d/zzz-reboot-required.sh
+if [ -f /var/run/reboot-required ] ; then
 	tput setaf 1;echo [REBOOT REQUIRED];
 fi
 EOF
