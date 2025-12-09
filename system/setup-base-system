@@ -714,11 +714,11 @@ if git clone https://github.com/azlux/log2ram.git /tmp/log2ram >/dev/null 2>>/tm
     [[ -z "$RAM_SIZE_GB" || "$RAM_SIZE_GB" -eq 0 ]] && RAM_SIZE_GB=4
 
     if (( RAM_SIZE_GB <= 8 )); then
-        LOG2RAM_SIZE="128M"; CRON_HOURS=1
+        LOG2RAM_SIZE="256M"; CRON_HOURS=1
     elif (( RAM_SIZE_GB <= 16 )); then
-        LOG2RAM_SIZE="256M"; CRON_HOURS=3
+        LOG2RAM_SIZE="512M"; CRON_HOURS=3
     else
-        LOG2RAM_SIZE="512M"; CRON_HOURS=6
+        LOG2RAM_SIZE="1024M"; CRON_HOURS=6
     fi
 
     echo "- Detected RAM: $RAM_SIZE_GB GB"
