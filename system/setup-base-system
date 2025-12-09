@@ -48,7 +48,7 @@ NEW_APPS=exa
 if [ "${VERSION_CODENAME}" = "trixie" ] ; then
    NEW_APPS="eza fastfetch"
 fi
-apt-get -y install ${NEW_APPS} vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop plocate rsync powertop command-not-found &>/dev/null
+apt-get -y install ${NEW_APPS} vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop plocate rsync powertop command-not-found unattended-upgrades &>/dev/null
 #
 ################################################################################
 #
@@ -325,6 +325,8 @@ if [ "\${SUDO_USER}" = "" ] ; then
     fi
 fi
 
+if [ -f /var/run/reboot-required ] ; then tput setaf 3;echo REBOOT REQUIRED; fi
+
 EOF
 
 # Terminal
@@ -475,6 +477,182 @@ EOF
 #
 ################################################################################
 #
+echo "Configuring APT"
+
+echo 'Acquire::Languages "none";' > /etc/apt/apt.conf.d/99disable-translations
+
+echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+
+echo 'APT::Periodic::AutocleanInterval "7";' > /etc/apt/apt.conf.d/99autoclean-interval
+
+echo 'APT::Periodic::Download-Upgradeable-Packages "1";' > /etc/apt/apt.conf.d/99download-update-interval
+
+cat > /etc/apt/apt.conf.d/99unattended-upgrades << EOF
+// Unattended-Upgrade::Origins-Pattern controls which packages are
+// upgraded.
+//
+Unattended-Upgrade::Origins-Pattern {
+        "origin=Debian,codename=${distro_codename},label=Debian-Security";
+        "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+};
+
+// Remove unused automatically installed kernel-related packages
+// (kernel images, kernel headers and kernel version locked tools).
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+
+// Do automatic removal of newly unused dependencies after the upgrade
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+
+// Do automatic removal of unused packages after the upgrade
+// (equivalent to apt-get autoremove)
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+
+// Automatically reboot *WITHOUT CONFIRMATION* if
+//  the file /var/run/reboot-required is found after the upgrade
+Unattended-Upgrade::Automatic-Reboot "true";
+
+// Automatically reboot even if there are users currently logged in
+// when Unattended-Upgrade::Automatic-Reboot is set to true
+Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+
+// If automatic reboot is enabled and needed, reboot at the specific
+// time instead of immediately
+//  Default: "now"
+Unattended-Upgrade::Automatic-Reboot-Time "04:00";
+
+EOF
+#
+################################################################################
+#
+# Some server settings from ProxMenux usaeful for non-Proxmox servers
+#
+echo "Tuning Server Settings"
+
+echo "- Increasing System limits..."
+cat > /etc/sysctl.d/99-maxwatches.conf << EOF
+fs.inotify.max_user_watches = 1048576
+fs.inotify.max_user_instances = 1048576
+fs.inotify.max_queued_events = 1048576
+EOF
+
+cat > /etc/security/limits.d/99-limits.conf << EOF
+* soft     nproc          1048576
+* hard     nproc          1048576
+* soft     nofile         1048576
+* hard     nofile         1048576
+root soft     nproc          unlimited
+root hard     nproc          unlimited
+root soft     nofile         unlimited
+root hard     nofile         unlimited
+EOF
+
+cat > /etc/sysctl.d/99-maxkeys.conf << EOF
+kernel.keys.root_maxkeys=1000000
+kernel.keys.maxkeys=1000000
+EOF
+
+cat > /etc/sysctl.d/99-swap.conf << EOF
+vm.swappiness = 10
+vm.vfs_cache_pressure = 100
+EOF
+
+cat > /etc/sysctl.d/99-fs.conf << EOF
+fs.nr_open = 12000000
+fs.file-max = 9223372036854775807
+fs.aio-max-nr = 1048576
+EOF
+
+for file in /etc/systemd/system.conf /etc/systemd/user.conf; do
+	if ! grep -q "^DefaultLimitNOFILE=" "$file"; then
+		echo "DefaultLimitNOFILE=256000" >> "$file"
+	fi
+done
+
+for file in /etc/pam.d/common-session /etc/pam.d/runuser-l; do
+	if ! grep -q "^session required pam_limits.so" "$file"; then
+		echo 'session required pam_limits.so' >> "$file"
+	fi
+done
+
+if ! grep -q "ulimit -n 256000" /root/.profile; then
+	echo "ulimit -n 256000" >> /root/.profile
+fi
+
+echo "- Optimizing memory settings..."
+cat <<EOF > /etc/sysctl.d/99-memory.conf
+# Balanced Memory Optimization
+vm.swappiness = 10
+vm.dirty_ratio = 15
+vm.dirty_background_ratio = 5
+vm.overcommit_memory = 1
+vm.max_map_count = 65530
+EOF
+
+echo "- Configuring kernel panic behavior..."
+cat <<EOF > /etc/sysctl.d/99-kernelpanic.conf
+# Enable restart on kernel panic, kernel oops and hardlockup
+kernel.core_pattern = /var/crash/core.%t.%p
+kernel.panic = 10
+kernel.panic_on_oops = 1
+kernel.hardlockup_panic = 1
+EOF
+
+echo "- Optimizing network settings..."
+cat <<'EOF' > /etc/sysctl.d/99-network.conf
+# ==========================================================
+# ProxMenux - Network tuning (PVE 9 compatible)
+# ==========================================================
+
+# Core buffers & queues
+net.core.netdev_max_backlog = 8192
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.core.somaxconn = 8192
+
+# IPv4 hardening
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.all.secure_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.all.log_martians = 0
+
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv4.conf.default.secure_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+net.ipv4.conf.default.log_martians = 0
+
+# rp_filter:
+net.ipv4.conf.all.rp_filter = 2
+net.ipv4.conf.default.rp_filter = 2
+
+# ICMP
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+
+# TCP/IP
+net.ipv4.ip_local_port_range = 1024 65535
+net.ipv4.tcp_mtu_probing = 1
+net.ipv4.tcp_rfc1337 = 1
+net.ipv4.tcp_sack = 1
+net.ipv4.tcp_rmem = 8192 87380 16777216
+net.ipv4.tcp_wmem = 8192 65536 16777216
+
+# Unix sockets
+net.unix.max_dgram_qlen = 4096
+EOF
+
+sysctl --system > /dev/null 2>&1
+#
+################################################################################
+#
+# Server settings from ProxMenux
+#
+echo "Tuning Server Settings"
+
+#
+################################################################################
+#
 echo "Creating Update Script (/usr/local/bin/update-base-system)"
 cat <<EOF >/usr/local/bin/update-base-system
 #!/bin/bash
@@ -507,12 +685,13 @@ chmod a+x /usr/local/bin/update-base-system
 ################################################################################
 #
 if [ ! -f /var/lib/plocate/plocate.db ] ; then
-	echo "Updating plocate.db"
+	echo "Updating plocate.db..."
 	updatedb
 fi
 #
 ################################################################################
 #
+echo "Updating User Profiles..."
 for USERNAME in $(ls -1 /home)
 do
     USERHOMEDIR=/home/${USERNAME}
@@ -536,5 +715,9 @@ if [ ! -f /etc/skel/.hushlogin ] ; then
 	echo "Setting default .hushlogin"
 	touch /etc/skel/.hushlogin
 fi
+#
+################################################################################
+#
+tput setaf 3;echo REBOOT REQUIRED;
 #
 ################################################################################
