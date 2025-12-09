@@ -818,7 +818,30 @@ EOF
     echo "Journald configuration adjusted to ${USE_MB}M (Log2RAM ${LOG2RAM_SIZE})"
 
 fi
-
+#
+################################################################################
+#
+# Optimize logrotate
+#
+if ! grep -q "# Log2RAM optimized configuration" "/etc/logrotate.conf"; then
+	echo "Optimizing logrotate configuration..."
+	cp "/etc/logrotate.conf" "/etc/logrotate.conf.bak"
+	cat <<EOF > "/etc/logrotate.conf"
+# Log2RAM optimized configuration (Log2RAM-friendly)
+daily
+su root adm
+rotate 7
+size=10M
+compress
+delaycompress
+missingok
+notifempty
+create 0640 root adm
+copytruncate
+include /etc/logrotate.d
+EOF
+	systemctl restart logrotate > /dev/null 2>&1
+fi
 #
 ################################################################################
 #
