@@ -705,7 +705,7 @@ fi
 
 RAM_SIZE_GB=$(free -g | awk '/^Mem:/{print $2}')
 RAM_SIZE_MB=$(free -m | awk '/^Mem:/{print $2}')
-[[ -z "$RAM_SIZE_GB" || "$RAM_SIZE_GB" -eq 0 ]] && RAM_SIZE_GB=4
+[[ -z "$RAM_SIZE_GB" || "$RAM_SIZE_GB" -eq 0 ]] && RAM_SIZE_GB=2
 
 if (( RAM_SIZE_GB <= 2 )); then
 	echo "[WARN] Low RAM detected (${RAM_SIZE_MB}M). Disabling Log2RAM."
