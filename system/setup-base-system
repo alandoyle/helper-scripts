@@ -721,9 +721,9 @@ fi
 # Check if we're in an LXC/INCUS container
 # If we are then DON'T run Log2RAM
 grep -qa container=lxc /proc/1/environ
-if[ $? -eq 0 ]; then
-	echo "[WARN] Container detected. Disabling Log2RAM"
-	ENABLE_LOG2RAM=FALSE;
+if [ $? -eq 0 ] ; then
+	echo "[WARN] Container detected. Disabling Log2RAM."
+	ENABLE_LOG2RAM=FALSE
 fi
 
 rm -rf /tmp/log2ram 2>/dev/null || true
