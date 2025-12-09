@@ -12,6 +12,8 @@
 #     bash -c "$(curl -sSfL https://raw.githubusercontent.com/alandoyle/helper-scripts/main/system/setup-base-system)"
 #
 ################################################################################
+ENABLE_LOG2RAM=TRUE
+################################################################################
 #
 # Root check
 #
@@ -701,44 +703,49 @@ if [ -f /etc/log2ram.conf ] || [ -d /var/log.hdd ]; then
     systemctl restart cron >/dev/null 2>&1 || true
 fi
 
+RAM_SIZE_GB=$(free -g | awk '/^Mem:/{print $2}')
+[[ -z "$RAM_SIZE_GB" || "$RAM_SIZE_GB" -eq 0 ]] && RAM_SIZE_GB=4
+
+if (( RAM_SIZE_GB <= 2 )); then
+	ENABLE_LOG2RAM=FALSE; LOG2RAM_SIZE="50M"
+elif (( RAM_SIZE_GB <= 8 )); then
+	LOG2RAM_SIZE="256M"; CRON_HOURS=1
+elif (( RAM_SIZE_GB <= 16 )); then
+	LOG2RAM_SIZE="512M"; CRON_HOURS=2
+elif (( RAM_SIZE_GB <= 32 )); then
+	LOG2RAM_SIZE="1024M"; CRON_HOURS=4
+else
+	LOG2RAM_SIZE="2048M"; CRON_HOURS=6
+fi
+
 rm -rf /tmp/log2ram 2>/dev/null || true
-if git clone https://github.com/azlux/log2ram.git /tmp/log2ram >/dev/null 2>>/tmp/log2ram_install.log; then
-	echo "Configuring Log2RAM..."
-	cd /tmp/log2ram
-	bash install.sh
+if [ "$ENABLE_LOG2RAM" == "TRUE" ] ; then
+	if git clone https://github.com/azlux/log2ram.git /tmp/log2ram >/dev/null 2>>/tmp/log2ram_install.log; then
+		echo "Configuring Log2RAM..."
+		cd /tmp/log2ram
+		bash install.sh
 
-    systemctl enable --now log2ram >/dev/null 2>&1 || true
-    systemctl daemon-reload >/dev/null 2>&1 || true
+		systemctl enable --now log2ram >/dev/null 2>&1 || true
+		systemctl daemon-reload >/dev/null 2>&1 || true
 
-    RAM_SIZE_GB=$(free -g | awk '/^Mem:/{print $2}')
-    [[ -z "$RAM_SIZE_GB" || "$RAM_SIZE_GB" -eq 0 ]] && RAM_SIZE_GB=4
+		echo "- Detected RAM: $RAM_SIZE_GB GB"
+		echo "- Log2RAM size set to: $LOG2RAM_SIZE"
+		sed -i "s/^SIZE=.*/SIZE=$LOG2RAM_SIZE/" /etc/log2ram.conf
 
-    if (( RAM_SIZE_GB <= 8 )); then
-        LOG2RAM_SIZE="256M"; CRON_HOURS=1
-    elif (( RAM_SIZE_GB <= 16 )); then
-        LOG2RAM_SIZE="512M"; CRON_HOURS=3
-    else
-        LOG2RAM_SIZE="1024M"; CRON_HOURS=6
-    fi
+		LOG2RAM_BIN="$(command -v log2ram || echo /usr/sbin/log2ram)"
 
-    echo "- Detected RAM: $RAM_SIZE_GB GB"
-	echo "- Log2RAM size set to: $LOG2RAM_SIZE"
-    sed -i "s/^SIZE=.*/SIZE=$LOG2RAM_SIZE/" /etc/log2ram.conf
-
-    LOG2RAM_BIN="$(command -v log2ram || echo /usr/sbin/log2ram)"
-
-cat > /etc/cron.d/log2ram <<EOF
+		cat > /etc/cron.d/log2ram <<EOF
 # Log2RAM periodic sync - Created by ProxMenux
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 MAILTO=""
 0 */$CRON_HOURS * * * root $LOG2RAM_BIN write >/dev/null 2>&1
 EOF
-    chmod 0644 /etc/cron.d/log2ram
-    chown root:root /etc/cron.d/log2ram
-    echo "Log2RAM write scheduled every $CRON_HOURS hour(s)"
+		chmod 0644 /etc/cron.d/log2ram
+		chown root:root /etc/cron.d/log2ram
+		echo "Log2RAM write scheduled every $CRON_HOURS hour(s)"
 
-    cat > /usr/local/bin/log2ram-check.sh <<'EOF'
+		cat > /usr/local/bin/log2ram-check.sh <<'EOF'
 #!/usr/bin/env bash
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
@@ -763,38 +770,40 @@ if (( USED_BYTES > THRESHOLD_BYTES )); then
   "$L2R_BIN" write 2>/dev/null || true
 fi
 EOF
-    chmod +x /usr/local/bin/log2ram-check.sh
+		chmod +x /usr/local/bin/log2ram-check.sh
 
-    cat > /etc/cron.d/log2ram-auto-sync <<'EOF'
+		cat > /etc/cron.d/log2ram-auto-sync <<'EOF'
 # Log2RAM auto-sync based on /var/log usage - Created by ProxMenux
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 MAILTO=""
 */5 * * * * root /usr/local/bin/log2ram-check.sh >/dev/null 2>&1
 EOF
-    chmod 0644 /etc/cron.d/log2ram-auto-sync
-    chown root:root /etc/cron.d/log2ram-auto-sync
+		chmod 0644 /etc/cron.d/log2ram-auto-sync
+		chown root:root /etc/cron.d/log2ram-auto-sync
 
-    systemctl restart cron >/dev/null 2>&1 || true
-    echo "Auto-sync enabled when /var/log exceeds 90% of $LOG2RAM_SIZE"
-    echo "Adjusting systemd-journald limits to match Log2RAM size..."
+		systemctl restart cron >/dev/null 2>&1 || true
+		echo "Auto-sync enabled when /var/log exceeds 90% of $LOG2RAM_SIZE"
+	fi
+fi
 
-    if [[ -f /etc/systemd/journald.conf ]]; then
-        cp -n /etc/systemd/journald.conf /etc/systemd/journald.conf.bak.$(date +%Y%m%d-%H%M%S)
-    fi
+echo "Adjusting systemd-journald limits..."
+if [[ -f /etc/systemd/journald.conf ]]; then
+	cp -n /etc/systemd/journald.conf /etc/systemd/journald.conf.bak.$(date +%Y%m%d-%H%M%S)
+fi
 
-    SIZE_MB=$(echo "$LOG2RAM_SIZE" | tr -dc '0-9')
-    USE_MB=$(( SIZE_MB * 55 / 100 ))
-    KEEP_MB=$(( SIZE_MB * 10 / 100 ))
-    RUNTIME_MB=$(( SIZE_MB * 25 / 100 ))
+SIZE_MB=$(echo "$LOG2RAM_SIZE" | tr -dc '0-9')
+USE_MB=$(( SIZE_MB * 55 / 100 ))
+KEEP_MB=$(( SIZE_MB * 10 / 100 ))
+RUNTIME_MB=$(( SIZE_MB * 25 / 100 ))
 
-    [ "$USE_MB" -lt 80 ] && USE_MB=80
-    [ "$RUNTIME_MB" -lt 32 ] && RUNTIME_MB=32
-    [ "$KEEP_MB" -lt 8 ] && KEEP_MB=8
+[ "$USE_MB" -lt 80 ] && USE_MB=80
+[ "$RUNTIME_MB" -lt 32 ] && RUNTIME_MB=32
+[ "$KEEP_MB" -lt 8 ] && KEEP_MB=8
 
 
-    sed -i '/^\[Journal\]/,$d' /etc/systemd/journald.conf 2>/dev/null || true
-    tee -a /etc/systemd/journald.conf >/dev/null <<EOF
+sed -i '/^\[Journal\]/,$d' /etc/systemd/journald.conf 2>/dev/null || true
+tee -a /etc/systemd/journald.conf >/dev/null <<EOF
 [Journal]
 Storage=persistent
 SplitMode=none
@@ -814,20 +823,18 @@ MaxLevelConsole=notice
 MaxLevelWall=crit
 EOF
 
-    systemctl restart systemd-journald >/dev/null 2>&1 || true
-    echo "Journald configuration adjusted to ${USE_MB}M (Log2RAM ${LOG2RAM_SIZE})"
-
-fi
+systemctl restart systemd-journald >/dev/null 2>&1 || true
+echo "Journald configuration adjusted to ${USE_MB}M (Log2RAM ${LOG2RAM_SIZE})"
 #
 ################################################################################
 #
 # Optimize logrotate
 #
-if ! grep -q "# Log2RAM optimized configuration" "/etc/logrotate.conf"; then
+if ! grep -q "# RAM optimized configuration" "/etc/logrotate.conf"; then
 	echo "Optimizing logrotate configuration..."
-	cp "/etc/logrotate.conf" "/etc/logrotate.conf.bak"
+	cp -f "/etc/logrotate.conf" "/etc/logrotate.conf.bak"
 	cat <<EOF > "/etc/logrotate.conf"
-# Log2RAM optimized configuration (Log2RAM-friendly)
+# RAM optimized configuration (Log2RAM-friendly)
 daily
 su root adm
 rotate 7
