@@ -43,17 +43,17 @@ apt-get -y dist-upgrade &>/dev/null
 #
 ################################################################################
 #
-echo "Adding additional applications"
-NEW_APPS=exa
+echo "Adding additional applications..."
+NEW_APPS=
 if [ "${VERSION_CODENAME}" = "trixie" ] ; then
-   NEW_APPS="eza fastfetch"
+   NEW_APPS="fastfetch"
 fi
-apt-get -y install ${NEW_APPS} vim aptitude lsscsi git curl gnupg p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop plocate rsync powertop command-not-found unattended-upgrades &>/dev/null
+apt-get -y install ${NEW_APPS} vim aptitude lsscsi git curl gnupg bash-completion p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop plocate rsync powertop command-not-found unattended-upgrades &>/dev/null
 #
 ################################################################################
 #
 if [ ! -f /usr/bin/fastfetch ] ; then
-    echo "Installing FASTFETCH (`uname -m`)"
+    echo "Installing FASTFETCH (`uname -m`)..."
     FASTFETCH_URL=https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb
     if [ "`uname -m`" = "aarch64" ] ; then
         FASTFETCH_URL=https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-aarch64.deb
@@ -64,7 +64,7 @@ fi
 #
 #################################################################################
 #
-echo "Configuring applications"
+echo "Configuring applications..."
 apt-file update &>/dev/null
 update-command-not-found &>/dev/null
 if [ !  -f /etc/vim/vimrc.local -a -d /etc/vim ] ; then
@@ -83,7 +83,7 @@ fi
 #
 ################################################################################
 #
-echo "Creating STARSHIP profiles"
+echo "Creating STARSHIP profiles..."
 cat <<EOF >/etc/starship.toml
 # Simple starship.toml file
 format = """
@@ -285,7 +285,7 @@ ln -sf /etc/starship.toml /etc/skel/.config/starship.toml
 ################################################################################
 #
 
-echo "Installing STARSHIP (`uname -m`)"
+echo "Installing STARSHIP (`uname -m`)..."
 STARSHIP_URL=https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz
 if [ "`uname -m`" = "aarch64" ] ; then
 	STARSHIP_URL=https://github.com/starship/starship/releases/latest/download/starship-aarch64-unknown-linux-musl.tar.gz
@@ -299,7 +299,7 @@ rm -f /tmp/starship.tar.gz
 #
 ################################################################################
 #
-echo "Updating BASH profile"
+echo "Updating BASH profile..."
 
 # Fastfetch
 [ -f /etc/profile.d/neofetch.sh ] && rm /etc/profile.d/neofetch.sh
@@ -365,7 +365,7 @@ fi
 #
 ################################################################################
 #
-echo "Configuring BASH aliases"
+echo "Configuring BASH aliases..."
 grep -F bash.aliases /root/.bashrc &>/dev/null 2>&1
 if [ $? -eq 0 ] ; then
 	# Remove old modifications
@@ -393,21 +393,20 @@ alias bd='cd "\$OLDPWD"'
 alias rmd='/bin/rm  --recursive --force --verbose '
 
 # Alias's for multiple directory listing commands
-alias ls='exa -H --group-directories-first'
-alias la='exa -alh' # show hidden files
-alias lf='exa -aFh --color=always' # add colors and file type extensions
-alias lx='exa -l --sort=ext' # sort by extension
-alias lk='exa -l --sort=size' # sort by size
-alias lc='exa -l --sort=mod' # sort by modified time
-alias lu='exa -l --sort=acc' # sort by access time
-alias lr='exa -lR' # recursive ls
-alias lt='exa -l --sort=new' # sort by date
-alias lm='exa -al |more' # pipe through 'more'
-alias lw='exa -xa' # wide listing format
-alias ll='exa -alF --group-directories-first' # long listing format
-alias labc='exa -l --sort=name' #alphabetical sort
-alias lff="exa -l | egrep -v '^d'" # files only
-alias ldir="exa -l | egrep '^d'" # directories only
+alias ls='ls --color=auto'
+alias la='ls -lAh' # show hidden files
+alias lf='ls -aFh' # file type extensions
+alias lx='ls -l --sort=extension' # sort by extension
+alias lk='ls -lSr' # sort by size
+alias lm='ls -lr --sort=time --time=mtime' # sort by modified time
+alias lu='ls -lr --sort=time --time=atime' # sort by access time
+alias lr='ls -lR' # recursive ls
+alias lt='ls -ltr' # sort by date
+alias lw='ls -aC' # wide listing format
+alias ll='ls -alF --group-directories-first' # long listing format
+alias labc='ls -l --sort=name' #alphabetical sort
+alias lff="ls -l | egrep -v '^d'" # files only
+alias ldir="ls -l | egrep '^d'" # directories only
 
 # Search command line history
 alias h='history | grep '
@@ -477,17 +476,26 @@ EOF
 #
 ################################################################################
 #
-echo "Configuring APT"
+echo "Configuring APT..."
 
-echo 'Acquire::Languages "none";' > /etc/apt/apt.conf.d/99disable-translations
+if [ ! -f /etc/apt/apt.conf.d/99disable-translations ] ; then
+	echo 'Acquire::Languages "none";' > /etc/apt/apt.conf.d/99disable-translations
+fi
 
-echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+if [ ! -f /etc/apt/apt.conf.d/99force-ipv4 ] ; then
+	echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+fi
 
-echo 'APT::Periodic::AutocleanInterval "7";' > /etc/apt/apt.conf.d/99autoclean-interval
+if [ ! -f /etc/apt/apt.conf.d/99autoclean-interval ] ; then
+	echo 'APT::Periodic::AutocleanInterval "7";' > /etc/apt/apt.conf.d/99autoclean-interval
+fi
 
-echo 'APT::Periodic::Download-Upgradeable-Packages "1";' > /etc/apt/apt.conf.d/99download-update-interval
+if [ ! -f /etc/apt/apt.conf.d/99download-update-interval ] ; then
+	echo 'APT::Periodic::Download-Upgradeable-Packages "1";' > /etc/apt/apt.conf.d/99download-update-interval
+fi
 
-cat > /etc/apt/apt.conf.d/99unattended-upgrades << EOF
+if [ ! -f /etc/apt/apt.conf.d/99unattended-upgrades ] ; then
+	cat > /etc/apt/apt.conf.d/99unattended-upgrades << EOF
 // Unattended-Upgrade::Origins-Pattern controls which packages are
 // upgraded.
 //
@@ -521,6 +529,7 @@ Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
 Unattended-Upgrade::Automatic-Reboot-Time "04:00";
 
 EOF
+fi
 #
 ################################################################################
 #
@@ -646,9 +655,164 @@ sysctl --system > /dev/null 2>&1
 #
 ################################################################################
 #
-# Server settings from ProxMenux
+# Entropy settings from ProxMenux
 #
-echo "Tuning Server Settings"
+echo "Configuring entropy generation to prevent slowdowns..."
+
+/usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::='--force-confdef' install haveged > /dev/null 2>&1
+
+cat <<EOF > /etc/default/haveged
+#   -w sets low entropy watermark (in bits)
+DAEMON_ARGS="-w 1024"
+EOF
+
+systemctl daemon-reload > /dev/null 2>&1
+systemctl enable haveged > /dev/null 2>&1
+#
+################################################################################
+#
+# Log2RAM. Modified from ProxMenux
+#
+if [ -f /etc/log2ram.conf ] || [ -d /var/log.hdd ]; then
+	echo "Clearing previous Log2RAM install..."
+
+    systemctl stop log2ram log2ram-daily.timer >/dev/null 2>&1 || true
+    systemctl disable log2ram log2ram-daily.timer >/dev/null 2>&1 || true
+
+    rm -f /etc/cron.d/log2ram /etc/cron.d/log2ram-auto-sync \
+          /etc/cron.hourly/log2ram /etc/cron.daily/log2ram \
+          /etc/cron.weekly/log2ram /etc/cron.monthly/log2ram 2>/dev/null || true
+    rm -f /usr/local/bin/log2ram-check.sh /usr/local/bin/log2ram /usr/sbin/log2ram 2>/dev/null || true
+    rm -f /etc/systemd/system/log2ram.service \
+          /etc/systemd/system/log2ram-daily.timer \
+          /etc/systemd/system/log2ram-daily.service \
+          /etc/systemd/system/sysinit.target.wants/log2ram.service 2>/dev/null || true
+    rm -rf /etc/systemd/system/log2ram.service.d 2>/dev/null || true
+    rm -f /etc/log2ram.conf* 2>/dev/null || true
+    rm -rf /etc/logrotate.d/log2ram /var/log.hdd /tmp/log2ram 2>/dev/null || true
+
+    systemctl daemon-reexec >/dev/null 2>&1 || true
+    systemctl daemon-reload >/dev/null 2>&1 || true
+    systemctl restart cron >/dev/null 2>&1 || true
+fi
+
+rm -rf /tmp/log2ram 2>/dev/null || true
+if git clone https://github.com/azlux/log2ram.git /tmp/log2ram >/dev/null 2>>/tmp/log2ram_install.log; then
+	echo "Configuring Log2RAM..."
+	cd /tmp/log2ram
+	bash install.sh
+
+    systemctl enable --now log2ram >/dev/null 2>&1 || true
+    systemctl daemon-reload >/dev/null 2>&1 || true
+
+    RAM_SIZE_GB=$(free -g | awk '/^Mem:/{print $2}')
+    [[ -z "$RAM_SIZE_GB" || "$RAM_SIZE_GB" -eq 0 ]] && RAM_SIZE_GB=4
+
+    if (( RAM_SIZE_GB <= 8 )); then
+        LOG2RAM_SIZE="128M"; CRON_HOURS=1
+    elif (( RAM_SIZE_GB <= 16 )); then
+        LOG2RAM_SIZE="256M"; CRON_HOURS=3
+    else
+        LOG2RAM_SIZE="512M"; CRON_HOURS=6
+    fi
+
+    echo "- Detected RAM: $RAM_SIZE_GB GB"
+	echo "- Log2RAM size set to: $LOG2RAM_SIZE"
+    sed -i "s/^SIZE=.*/SIZE=$LOG2RAM_SIZE/" /etc/log2ram.conf
+
+    LOG2RAM_BIN="$(command -v log2ram || echo /usr/sbin/log2ram)"
+
+cat > /etc/cron.d/log2ram <<EOF
+# Log2RAM periodic sync - Created by ProxMenux
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+0 */$CRON_HOURS * * * root $LOG2RAM_BIN write >/dev/null 2>&1
+EOF
+    chmod 0644 /etc/cron.d/log2ram
+    chown root:root /etc/cron.d/log2ram
+    echo "Log2RAM write scheduled every $CRON_HOURS hour(s)"
+
+    cat > /usr/local/bin/log2ram-check.sh <<'EOF'
+#!/usr/bin/env bash
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+CONF_FILE="/etc/log2ram.conf"
+L2R_BIN="$(command -v log2ram || true)"
+[[ -z "$L2R_BIN" && -x /usr/sbin/log2ram ]] && L2R_BIN="/usr/sbin/log2ram"
+[[ -z "$L2R_BIN" ]] && exit 0
+
+SIZE_MiB="$(grep -E '^SIZE=' "$CONF_FILE" 2>/dev/null | cut -d'=' -f2 | tr -dc '0-9')"
+[[ -z "$SIZE_MiB" ]] && SIZE_MiB=128
+LIMIT_BYTES=$(( SIZE_MiB * 1024 * 1024 ))
+THRESHOLD_BYTES=$(( LIMIT_BYTES * 90 / 100 ))
+
+USED_BYTES="$(df -B1 --output=used /var/log 2>/dev/null | tail -1 | tr -dc '0-9')"
+[[ -z "$USED_BYTES" ]] && exit 0
+
+LOCK="/run/log2ram-check.lock"
+exec 9>"$LOCK" 2>/dev/null || exit 0
+flock -n 9 || exit 0
+
+if (( USED_BYTES > THRESHOLD_BYTES )); then
+  "$L2R_BIN" write 2>/dev/null || true
+fi
+EOF
+    chmod +x /usr/local/bin/log2ram-check.sh
+
+    cat > /etc/cron.d/log2ram-auto-sync <<'EOF'
+# Log2RAM auto-sync based on /var/log usage - Created by ProxMenux
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+*/5 * * * * root /usr/local/bin/log2ram-check.sh >/dev/null 2>&1
+EOF
+    chmod 0644 /etc/cron.d/log2ram-auto-sync
+    chown root:root /etc/cron.d/log2ram-auto-sync
+
+    systemctl restart cron >/dev/null 2>&1 || true
+    echo "Auto-sync enabled when /var/log exceeds 90% of $LOG2RAM_SIZE"
+    echo "Adjusting systemd-journald limits to match Log2RAM size..."
+
+    if [[ -f /etc/systemd/journald.conf ]]; then
+        cp -n /etc/systemd/journald.conf /etc/systemd/journald.conf.bak.$(date +%Y%m%d-%H%M%S)
+    fi
+
+    SIZE_MB=$(echo "$LOG2RAM_SIZE" | tr -dc '0-9')
+    USE_MB=$(( SIZE_MB * 55 / 100 ))
+    KEEP_MB=$(( SIZE_MB * 10 / 100 ))
+    RUNTIME_MB=$(( SIZE_MB * 25 / 100 ))
+
+    [ "$USE_MB" -lt 80 ] && USE_MB=80
+    [ "$RUNTIME_MB" -lt 32 ] && RUNTIME_MB=32
+    [ "$KEEP_MB" -lt 8 ] && KEEP_MB=8
+
+
+    sed -i '/^\[Journal\]/,$d' /etc/systemd/journald.conf 2>/dev/null || true
+    tee -a /etc/systemd/journald.conf >/dev/null <<EOF
+[Journal]
+Storage=persistent
+SplitMode=none
+RateLimitIntervalSec=30s
+RateLimitBurst=1000
+ForwardToSyslog=no
+ForwardToWall=no
+Seal=no
+Compress=yes
+SystemMaxUse=${USE_MB}M
+SystemKeepFree=${KEEP_MB}M
+RuntimeMaxUse=${RUNTIME_MB}M
+MaxLevelStore=warning
+MaxLevelSyslog=warning
+MaxLevelKMsg=warning
+MaxLevelConsole=notice
+MaxLevelWall=crit
+EOF
+
+    systemctl restart systemd-journald >/dev/null 2>&1 || true
+    echo "Journald configuration adjusted to ${USE_MB}M (Log2RAM ${LOG2RAM_SIZE})"
+
+fi
 
 #
 ################################################################################
@@ -718,6 +882,7 @@ fi
 #
 ################################################################################
 #
+date > /var/run/reboot-required
 tput setaf 3;echo REBOOT REQUIRED;
 #
 ################################################################################
