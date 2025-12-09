@@ -718,6 +718,14 @@ else
 	LOG2RAM_SIZE="2048M"; CRON_HOURS=6
 fi
 
+# Check if we're in an LXC/INCUS container
+# If we are then DON'T run Log2RAM
+grep -qa container=lxc /proc/1/environ
+if[ $? -eq 0 ]; then
+	echo "[WARN] Container detected. Disabling Log2RAM"
+	ENABLE_LOG2RAM=FALSE;
+fi
+
 rm -rf /tmp/log2ram 2>/dev/null || true
 if [ "$ENABLE_LOG2RAM" == "TRUE" ] ; then
 	if git clone https://github.com/azlux/log2ram.git /tmp/log2ram >/dev/null 2>>/tmp/log2ram_install.log; then
@@ -784,6 +792,11 @@ EOF
 
 		systemctl restart cron >/dev/null 2>&1 || true
 		echo "Auto-sync enabled when /var/log exceeds 90% of $LOG2RAM_SIZE"
+
+		if [ ! -d /var/log.hdd ] ; then
+			mkdir -p /var/log.hdd
+			chown root:root /var/log.hdd
+		fi
 	fi
 fi
 
