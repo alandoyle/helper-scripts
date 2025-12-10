@@ -709,7 +709,7 @@ RAM_SIZE_MB=$(free -m | awk '/^Mem:/{print $2}')
 
 if (( RAM_SIZE_GB <= 2 )); then
 	echo "[WARN] Low RAM detected (${RAM_SIZE_MB}M). Disabling Log2RAM."
-	ENABLE_LOG2RAM=FALSE; LOG2RAM_SIZE="50M"
+	ENABLE_LOG2RAM=FALSE; LOG2RAM_SIZE="128M"
 elif (( RAM_SIZE_GB <= 8 )); then
 	LOG2RAM_SIZE="256M"; CRON_HOURS=1
 elif (( RAM_SIZE_GB <= 16 )); then
