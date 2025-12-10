@@ -92,4 +92,3 @@ EOF
 if [ /usr/local/bin/docker-compose ] ; then
     rm -f /usr/local/bin/docker-compose
 fi
-docker-compose version
