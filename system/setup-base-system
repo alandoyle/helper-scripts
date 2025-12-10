@@ -311,7 +311,7 @@ if [ "\${SUDO_USER}" = "" ] ; then
     fastfetch
     if [ -f /usr/bin/incus ] ; then
         echo -e "\n\tINCUS CONTAINERS"
-        incus ls -cns4
+        incus ls -cns4 -f compact|egrep "RUNNING|STOPPED"
     fi
     if [ -f /usr/bin/docker ] ; then
         echo -e "\n\tDOCKER CONTAINERS\n-------------------------------------------------------------------------------"
