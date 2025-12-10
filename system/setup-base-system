@@ -310,7 +310,7 @@ if [ "\${SUDO_USER}" = "" ] ; then
     clear
     fastfetch
     if [ -f /usr/bin/incus ] ; then
-        echo -e "\n\tINCUS CONTAINERS"
+        echo -e "\n\tINCUS CONTAINERS\n-------------------------------------------------------------------------------"
         incus ls -cns4 -f compact|egrep "RUNNING|STOPPED"
     fi
     if [ -f /usr/bin/docker ] ; then
