@@ -77,6 +77,8 @@ alias dkps='docker ps --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Po
 alias dkls='docker ps --format "table {{.Names}}\t{{.State}}\t{{.Status}}\t{{.Ports}}"'
 alias dkrs='docker compose down && docker compose up -d'
 alias dkvi='sudo vi docker-compose.yml'
+alias dklsi='docker image list'
+alias dkrmi='docker rmi'
 alias docker-compose='docker compose'
 function dkxc() {
     docker exec -it "\$1" /bin/sh
