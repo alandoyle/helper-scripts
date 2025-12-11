@@ -19,9 +19,9 @@
 # this program. If not, see http://www.gnu.org/licenses/.
 #
 # Install using:
-#     sudo bash -c "$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/docker-installer)"
+#     sudo bash -c "$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-scripts/main/installers/docker-installer)"
 # or
-#     sudo bash -c "$(curl -sSfL https://github.com/alandoyle/helper-scripts/raw/main/installers/docker-installer)"
+#     sudo bash -c "$(curl -sSfL https://raw.githubusercontent.com/alandoyle/helper-scripts/main/installers/docker-installer)"
 #
 ################################################################################
 #
