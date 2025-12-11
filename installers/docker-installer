@@ -44,6 +44,7 @@ SW_COMMON=
 #
 # Setup
 #
+apt update
 apt install apt-transport-https ca-certificates curl ${SW_COMMON} -y
 [ -f /usr/share/keyrings/docker-archive-keyring.gpg ] && rm -f /usr/share/keyrings/docker-archive-keyring.gpg
 curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
@@ -94,4 +95,13 @@ EOF
 #
 if [ /usr/local/bin/docker-compose ] ; then
     rm -f /usr/local/bin/docker-compose
+fi
+
+################################################################################
+#
+# Update aliases
+#
+alias | grep -q dkup
+if [ $? -eq 0 ] ; then
+    . /etc/profile.d/docker.sh
 fi
