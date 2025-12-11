@@ -96,12 +96,3 @@ EOF
 if [ /usr/local/bin/docker-compose ] ; then
     rm -f /usr/local/bin/docker-compose
 fi
-
-################################################################################
-#
-# Update aliases
-#
-alias | grep -q dkup
-if [ $? -eq 0 ] ; then
-    . /etc/profile.d/docker.sh
-fi
