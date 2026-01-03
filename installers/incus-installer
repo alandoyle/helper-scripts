@@ -38,7 +38,6 @@ fi
 #
 VERSION_ID="0"
 VERSION_CODENAME=unknown
-INCUS_PKG=incus-base
 ID=unknown
 . /etc/os-release
 if [ "${ID}" != "debian" -a $VERSION_ID -lt 12 ] ; then
@@ -48,27 +47,21 @@ fi
 
 ################################################################################
 #
-# Add bookworm backports (if necessary), not required on Armbian/Trixie/Sid
+# Add the Zabbly Stable Repo (https://github.com/zabbly/incus/tree/stable)
 #
-if [ "${VERSION_CODENAME}" = "bookworm" ] ; then
-    NEED_BACKPORTS=TRUE
-    grep bookworm-backports /etc/apt/sources.list >/dev/null
-    [ $? -eq 0 ] && NEED_BACKPORTS=FALSE
-    grep bookworm-backports /etc/apt/sources.list.d/*.list >/dev/null
-    [ $? -eq 0 ] && NEED_BACKPORTS=FALSE
-
-    if [ "${NEED_BACKPORTS}" = "TRUE" ] ; then
-        echo "Adding Backports Repository"
-        cat << EOF | tee /etc/apt/sources.list.d/backports.list >/dev/null
+# Stable packages provide by Stéphane Graber, one of the core Incus developers.
+# This repo provides more up-to-date versions of Incus than the main Distro.
 #
-# Bookworm Backports
-#
-deb http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware
-deb-src http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware
+wget -O /etc/apt/keyrings/zabbly.asc https://pkgs.zabbly.com/key.asc
+cat <<EOF > /etc/apt/sources.list.d/zabbly-incus-stable.sources
+Enabled: yes
+Types: deb
+URIs: https://pkgs.zabbly.com/incus/stable
+Suites: $(. /etc/os-release && echo ${VERSION_CODENAME})
+Components: main
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/zabbly.asc
 EOF
-    fi
-    INCUS_PKG=incus-base/bookworm-backports
-fi
 
 ################################################################################
 #
@@ -80,7 +73,7 @@ apt update && apt upgrade -y
 #
 # Install Incus Base (as per https://discuss.linuxcontainers.org/t/incus-deinstalled-after-upgrade-in-debian-bookworm-with-backports/23209)
 #
-apt install bridge-utils ${INCUS_PKG} -y
+apt install bridge-utils incus-base -y
 
 ################################################################################
 #
