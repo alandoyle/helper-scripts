@@ -552,10 +552,12 @@ fs.inotify.max_queued_events = 1048576
 EOF
 
 cat > /etc/security/limits.d/99-limits.conf << EOF
-* soft     nproc          1048576
-* hard     nproc          1048576
-* soft     nofile         1048576
-* hard     nofile         1048576
+*    soft     nproc          1048576
+*    hard     nproc          1048576
+*    soft     nofile         1048576
+*    hard     nofile         1048576
+*    soft     memlock        unlimited
+*    hard     memlock        unlimited
 root soft     nproc          unlimited
 root hard     nproc          unlimited
 root soft     nofile         unlimited
@@ -563,6 +565,7 @@ root hard     nofile         unlimited
 EOF
 
 cat > /etc/sysctl.d/99-maxkeys.conf << EOF
+kernel.keys.maxbytes=100000000
 kernel.keys.root_maxkeys=1000000
 kernel.keys.maxkeys=1000000
 EOF
@@ -601,7 +604,7 @@ vm.swappiness = 10
 vm.dirty_ratio = 15
 vm.dirty_background_ratio = 5
 vm.overcommit_memory = 1
-vm.max_map_count = 65530
+vm.max_map_count = 262144
 EOF
 
 echo "- Configuring kernel panic behavior..."

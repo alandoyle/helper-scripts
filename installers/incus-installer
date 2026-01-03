@@ -77,7 +77,7 @@ apt install bridge-utils incus-base -y
 
 ################################################################################
 #
-# Prevent connectivity issues with Incus and Docker (also needed for Armbian if using ifupdown insted of NetworkManager)
+# Prevent connectivity issues with Incus and Docker (also needed for Armbian if using ifupdown instead of NetworkManager)
 # https://linuxcontainers.org/incus/docs/main/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-incus-and-docker
 #
 echo "net.ipv4.conf.all.forwarding=1" > /etc/sysctl.d/99-forwarding.conf
@@ -117,40 +117,76 @@ EOF
 #
 # Set up the system as per https://documentation.ubuntu.com/lxd/stable-4.0/production-setup/
 #
-[ ! -f /etc/security/limits.conf.ORIG ] && mv /etc/security/limits.conf /etc/security/limits.conf.ORIG
-echo "Creating /etc/security/limits.conf"
-cat << EOF | tee /etc/security/limits.conf >/dev/null
+[ -f /etc/security/limits.conf.ORIG ] && mv /etc/security/limits.conf.ORIG /etc/security/limits.conf
+
+if [ ! -f /etc/security/limits.d/99-limits.conf ] ; then
+    echo "Creating /etc/security/limits.d/99-limits.conf..."
+    cat << EOF | tee /etc/security/limits.d/99-limits.conf >/dev/null
 # /etc/security/limits.conf
 #
-
-#<domain>      <type>  <item>         <value>
-*				soft	nofile			1048576
-*				hard	nofile			1048576
-root			soft	nofile			1048576
-root			hard	nofile			1048576
-*				soft	memlock			unlimited
-*				hard	memlock			unlimited
-
+#<domain> <type> <item> <value>
+*    soft     nproc          1048576
+*    hard     nproc          1048576
+*    soft     nofile         1048576
+*    hard     nofile         1048576
+*    soft     memlock        unlimited
+*    hard     memlock        unlimited
+root soft     nproc          unlimited
+root hard     nproc          unlimited
+root soft     nofile         unlimited
+root hard     nofile         unlimited
 # End of file
 EOF
+fi
 
-SYSCTL_FILE=/etc/sysctl.d/99-incus.conf
-echo "Creating ${SYSCTL_FILE}"
-cat << EOF | tee ${SYSCTL_FILE} >/dev/null
-# LXC Settings
-#
+echo "Updating SYSCTL Settings..."
+if [ ! -f /etc/sysctl.d/99-fs.conf ] ; then
+    echo "- Creating /etc/sysctl.d/99-fs.conf..."
+    cat > /etc/sysctl.d/99-fs.conf << EOF
+fs.nr_open = 12000000
+fs.file-max = 9223372036854775807
+fs.aio-max-nr = 1048576
+EOF
+fi
 
-fs.aio-max-nr=524288
+if [ ! -f /etc/sysctl.d/99-inotify.conf ] ; then
+    echo "- Creating /etc/sysctl.d/99-inotify.conf..."
+    cat > /etc/sysctl.d/99-inotify.conf << EOF
 fs.inotify.max_queued_events=1048576
 fs.inotify.max_user_instances=1048576
 fs.inotify.max_user_watches=1048576
+EOF
+fi
+
+if [ ! -f /etc/sysctl.d/99-maxkeys.conf ] ; then
+    echo "- Creating /etc/sysctl.d/99-maxkeys.conf..."
+    cat > /etc/sysctl.d/99-maxkeys.conf << EOF
+kernel.keys.maxbytes=100000000
+kernel.keys.root_maxkeys=1000000
+kernel.keys.maxkeys=1000000
+EOF
+fi
+
+if [ ! -f /etc/sysctl.d/99-memory.conf ] ; then
+    echo "- Creating /etc/sysctl.d/99-memory.conf..."
+    cat <<EOF > /etc/sysctl.d/99-memory.conf
+# Balanced Memory Optimization
+vm.swappiness = 10
+vm.dirty_ratio = 15
+vm.dirty_background_ratio = 5
+vm.overcommit_memory = 1
+vm.max_map_count = 262144
+EOF
+fi
+
+SYSCTL_FILE=/etc/sysctl.d/99-incus.conf
+echo "Creating /etc/sysctl.d/99-incus.conf..."
+cat << EOF > /etc/sysctl.d/99-incus.conf
+# Incus Settings
+#
 kernel.dmesg_restrict=1
-kernel.keys.maxbytes=2000000
-kernel.keys.maxkeys=20000
 net.ipv4.neigh.default.gc_thresh3=8192
 net.ipv6.neigh.default.gc_thresh3=8192
-vm.max_map_count=262144
-
 # End of file
 EOF
 
