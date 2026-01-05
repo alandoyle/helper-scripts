@@ -22,3 +22,4 @@ Installer scripts included
 - PiHole Cloudflare/Quad9 installers
 - Incus Installer (Debian 12 or higher only)
 - Certbot with Cloudflare DNS-01 auth method installer
+- Webmin installer
