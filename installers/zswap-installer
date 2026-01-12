@@ -2,7 +2,7 @@
 #
 # zswap-installer is a Configurable ZSwap installer.
 #
-# Copyright (C) 2022-2025 Alan Doyle
+# Copyright (C) 2022-2026 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
@@ -41,7 +41,7 @@ cat << EOF > /usr/sbin/init-zswap
 #
 # Initialise ZSwap
 #
-# Copyright (C) 2022 Alan Doyle
+# Copyright (C) 2022-2026 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
@@ -59,6 +59,7 @@ fi
 # Default settings
 #
 ENABLED=1
+SHRINKER=1
 COMPRESSOR=lz4
 ACCEPT_THRESHOLD_PERCENT=90
 MAX_POOL_PERCENT=20
@@ -78,6 +79,7 @@ echo \$ZPOOL > /sys/module/zswap/parameters/zpool
 echo \$MAX_POOL_PERCENT > /sys/module/zswap/parameters/max_pool_percent
 echo \$ACCEPT_THRESHOLD_PERCENT > /sys/module/zswap/parameters/accept_threshold_percent
 echo \$SAME_FILLED_PAGES > /sys/module/zswap/parameters/same_filled_pages_enabled
+echo \$SHRINKER > /sys/module/zswap/parameters/shrinker_enabled
 echo \$ENABLED > /sys/module/zswap/parameters/enabled
 
 EOF
@@ -125,6 +127,14 @@ if [ ! -f /etc/default/zswap ] ; then
 # Enabled flag 0/1
 #
 ENABLED=1
+#
+# Shrinker Enabled flag 0/1
+# The shrinker, when enabled, causes zswap to shrink the pool by evicting cold
+# pages to swap when memory pressure is high. This reduces the amount of cold
+# data in the pool and can help avoid wasting CPU time on compressing and
+# decompressing cold pages.
+#
+SHRINKER=1
 #
 # Compression method
 #   lzo lzo-rle lz4 zstd
