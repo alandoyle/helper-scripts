@@ -2,7 +2,7 @@
 #
 # incus-installer is a simple installer for Incus.
 #
-# Copyright (C) 2024-2025 Alan Doyle
+# Copyright (C) 2024-2026 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
@@ -100,18 +100,94 @@ cat << EOF | tee /etc/profile.d/incus.sh >/dev/null
 #
 # Incus Aliases
 #
-alias lxc='incus'
 alias lslx='incus ls -cns4 -f compact|egrep "RUNNING|STOPPED"'
+alias lslx6='incus ls -cns6 -f compact|egrep "RUNNING|STOPPED"'
+alias lxc='incus'
+alias lxls='incus ls -cns4 -f compact|egrep "RUNNING|STOPPED"'
+alias lxls6='incus ls -cns6 -f compact|egrep "RUNNING|STOPPED"'
+alias lxps='incus ls -cns46 -f compact'
 alias lxrm='incus delete'
-alias lxnew="incus launch images:debian/\${VERSION_ID}"
-alias lxdknew="incus launch images:debian/\${VERSION_ID} -c security.nesting=true -c security.syscalls.intercept.mknod=true -c security.syscalls.intercept.setxattr=true"
 alias lxup='incus start'
 alias lxdn='incus stop'
 alias lxrs='incus restart'
 function lxxc() {
         incus exec \${1} /bin/bash
 }
+function lxdknew() {
+        lxnew \${1} ENABLE
+}
+function lxdel() {
+        incus stop \${1}
+        incus delete \${1}
+}
 EOF
+
+################################################################################
+#
+# Add Incus lxnew script
+#
+cat << EOF | tee /usr/local/bin/lxnew >/dev/null
+#!/bin/bash
+#
+# lxnew is a simple command to set up an INCUS container.
+#
+# Copyright (C) 2025-2026 Alan Doyle
+#
+################################################################################
+#
+# Root check
+#
+if [ `id -u` -ne 0 ] ; then
+    echo "ERROR: This script needs to be run as root or using sudo."
+    exit 99
+fi
+#
+################################################################################
+#
+. /etc/os-release
+#
+################################################################################
+#
+LXNEW_EXTRA=
+CONTAINER_NAME=$1
+USE_DOCKER=$2
+if [ "${CONTAINER_NAME}" = "" ] ; then
+    echo "ERROR: A container name is required!"
+    exit 98
+fi
+#
+################################################################################
+#
+echo "Creating ${CONTAINER_NAME}..."
+incus launch images:debian/${VERSION_ID} ${CONTAINER_NAME}
+#
+################################################################################
+#
+if [ "${USE_DOCKER}" != "" ] ; then
+    echo "- Enabling Docker support"
+    incus config set ${CONTAINER_NAME} security.nesting=true security.syscalls.intercept.mknod=true security.syscalls.intercept.setxattr=true
+fi
+#
+################################################################################
+#
+echo "- Prepping Server"
+incus exec ${CONTAINER_NAME} -- /usr/bin/apt update
+incus exec ${CONTAINER_NAME} -- /usr/bin/apt upgrade -y
+incus exec ${CONTAINER_NAME} -- /usr/bin/apt install wget curl openssh-server -y
+#
+################################################################################
+#
+STORAGE_POOL=`incus storage show default | grep source: | cut -d' ' -f4`
+WGETRC=${STORAGE_POOL}/containers/${CONTAINER_NAME}/rootfs/etc/wgetrc
+echo "- Force wget to IPv4 only"
+grep inet4_only ${WGETRC} >/dev/null 2>&1
+if [ $? -ne 0 ] ; then
+    echo -e "\n# Force IPv4\ninet4_only = on\n" >> ${WGETRC}
+fi
+#
+################################################################################
+EOF
+chmod a+x /usr/local/bin/lxnew
 
 ################################################################################
 #
