@@ -137,7 +137,7 @@ cat << EOF | tee /usr/local/bin/lxnew >/dev/null
 #
 # Root check
 #
-if [ `id -u` -ne 0 ] ; then
+if [ \`id -u\` -ne 0 ] ; then
     echo "ERROR: This script needs to be run as root or using sudo."
     exit 99
 fi
@@ -149,40 +149,40 @@ fi
 ################################################################################
 #
 LXNEW_EXTRA=
-CONTAINER_NAME=$1
-USE_DOCKER=$2
-if [ "${CONTAINER_NAME}" = "" ] ; then
+CONTAINER_NAME=\$1
+USE_DOCKER=\$2
+if [ "\${CONTAINER_NAME}" = "" ] ; then
     echo "ERROR: A container name is required!"
     exit 98
 fi
 #
 ################################################################################
 #
-echo "Creating ${CONTAINER_NAME}..."
-incus launch images:debian/${VERSION_ID} ${CONTAINER_NAME}
+echo "Creating \${CONTAINER_NAME}..."
+incus launch images:debian/\${VERSION_ID} \${CONTAINER_NAME}
 #
 ################################################################################
 #
-if [ "${USE_DOCKER}" != "" ] ; then
+if [ "\${USE_DOCKER}" != "" ] ; then
     echo "- Enabling Docker support"
-    incus config set ${CONTAINER_NAME} security.nesting=true security.syscalls.intercept.mknod=true security.syscalls.intercept.setxattr=true
+    incus config set \${CONTAINER_NAME} security.nesting=true security.syscalls.intercept.mknod=true security.syscalls.intercept.setxattr=true
 fi
 #
 ################################################################################
 #
 echo "- Prepping Server"
-incus exec ${CONTAINER_NAME} -- /usr/bin/apt update
-incus exec ${CONTAINER_NAME} -- /usr/bin/apt upgrade -y
-incus exec ${CONTAINER_NAME} -- /usr/bin/apt install wget curl openssh-server -y
+incus exec \${CONTAINER_NAME} -- /usr/bin/apt update
+incus exec \${CONTAINER_NAME} -- /usr/bin/apt upgrade -y
+incus exec \${CONTAINER_NAME} -- /usr/bin/apt install wget curl openssh-server -y
 #
 ################################################################################
 #
-STORAGE_POOL=`incus storage show default | grep source: | cut -d' ' -f4`
-WGETRC=${STORAGE_POOL}/containers/${CONTAINER_NAME}/rootfs/etc/wgetrc
+STORAGE_POOL=\`incus storage show default | grep source: | cut -d' ' -f4\`
+WGETRC=\${STORAGE_POOL}/containers/\${CONTAINER_NAME}/rootfs/etc/wgetrc
 echo "- Force wget to IPv4 only"
-grep inet4_only ${WGETRC} >/dev/null 2>&1
-if [ $? -ne 0 ] ; then
-    echo -e "\n# Force IPv4\ninet4_only = on\n" >> ${WGETRC}
+grep inet4_only \${WGETRC} >/dev/null 2>&1
+if [ \$? -ne 0 ] ; then
+    echo -e "\n# Force IPv4\ninet4_only = on\n" >> \${WGETRC}
 fi
 #
 ################################################################################
