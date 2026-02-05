@@ -40,8 +40,8 @@ fi
 ################################################################################
 #
 echo "Upgrade system (please be patient)"
-apt-get update &>/dev/null
-apt-get -y dist-upgrade &>/dev/null
+apt-get update >/dev/null
+apt-get -y dist-upgrade >/dev/null
 #
 ################################################################################
 #
@@ -50,7 +50,7 @@ NEW_APPS=
 if [ "${VERSION_CODENAME}" = "trixie" ] ; then
    NEW_APPS="fastfetch"
 fi
-apt-get -y install ${NEW_APPS} sudo vim aptitude lsscsi git curl gnupg bash-completion logrotate p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop plocate rsync powertop command-not-found unattended-upgrades &>/dev/null
+apt-get -y install ${NEW_APPS} sudo vim aptitude lsscsi git curl gnupg bash-completion logrotate p7zip p7zip-full unrar-free lm-sensors zip unzip btop iotop plocate rsync powertop command-not-found unattended-upgrades >/dev/null
 #
 ################################################################################
 #
@@ -61,14 +61,14 @@ if [ ! -f /usr/bin/fastfetch ] ; then
         FASTFETCH_URL=https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-aarch64.deb
     fi
     curl --fail --silent --location --output /tmp/fastfetch-linux.deb "${FASTFETCH_URL}"
-    dpkg -i /tmp/fastfetch-linux.deb &>/dev/null
+    dpkg -i /tmp/fastfetch-linux.deb >/dev/null
 fi
 #
 #################################################################################
 #
 echo "Configuring applications..."
-apt-file update &>/dev/null
-update-command-not-found &>/dev/null
+apt-file update >/dev/null
+update-command-not-found >/dev/null
 if [ !  -f /etc/vim/vimrc.local -a -d /etc/vim ] ; then
     cat <<EOF >/etc/vim/vimrc.local
 if filereadable("\$VIMRUNTIME/defaults.vim")
@@ -373,7 +373,7 @@ fi
 ################################################################################
 #
 echo "Configuring BASH aliases..."
-grep -F bash.aliases /root/.bashrc &>/dev/null 2>&1
+grep -F bash.aliases /root/.bashrc >/dev/null 2>&1
 if [ $? -eq 0 ] ; then
 	# Remove old modifications
  	cat /root/.bashrc | grep -v 'bash\.aliases' > /root/.bashrc.$$
@@ -883,7 +883,7 @@ sudo bash -c "\$(wget -qLO - https://raw.githubusercontent.com/alandoyle/helper-
 #
 if [ -f /usr/bin/incus ] ; then
 	echo "Updating INCUS..."
-	sudo bash -c "\$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/incus-installer)" &>/dev/null
+	sudo bash -c "\$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/incus-installer)" >/dev/null
 	echo "Incus v\`incus --version\` installed."
 	echo "Logout and back in again to complete install."
 fi
@@ -892,7 +892,7 @@ fi
 #
 if [ -f /usr/bin/docker ] ; then
 	echo "Updating DOCKER..."
-	sudo bash -c "\$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/docker-installer)" &>/dev/null
+	sudo bash -c "\$(wget -qLO - https://github.com/alandoyle/helper-scripts/raw/main/installers/docker-installer)" >/dev/null
 	echo "\`docker --version\` installed."
 	echo "Logout and back in again to complete install."
 fi
