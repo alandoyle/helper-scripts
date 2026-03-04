@@ -540,7 +540,7 @@ fi
 #
 ################################################################################
 #
-# Some server settings from ProxMenux usaeful for non-Proxmox servers
+# Some server settings from ProxMenux useful for non-Proxmox servers
 #
 echo "Tuning Server Settings"
 

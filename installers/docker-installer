@@ -2,7 +2,7 @@
 #
 # docker-installer is a simple installer for Docker.
 #
-# Copyright (C) 2022-2025 Alan Doyle
+# Copyright (C) 2022-2026 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
@@ -44,18 +44,18 @@ SW_COMMON=
 #
 # Setup
 #
-apt update
-apt install apt-transport-https ca-certificates curl ${SW_COMMON} -y
+apt-get update
+apt-get install apt-transport-https ca-certificates curl ${SW_COMMON} -y
 [ -f /usr/share/keyrings/docker-archive-keyring.gpg ] && rm -f /usr/share/keyrings/docker-archive-keyring.gpg
 curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/$(lsb_release -is|awk '{print tolower($0)}') $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt update
+apt-get update
 
 ################################################################################
 #
 # Install docker and plugins
 #
-apt install docker-ce docker-compose-plugin docker-buildx-plugin yamllint -y
+apt-get install docker-ce docker-compose-plugin docker-buildx-plugin yamllint -y
 
 ################################################################################
 #
