@@ -2,7 +2,7 @@
 #
 # powersaver-installer is a Configurable PowerSaver installer.
 #
-# Copyright (C) 2022-2025 Alan Doyle
+# Copyright (C) 2022-2026 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
@@ -53,7 +53,7 @@ cat << EOF > /usr/sbin/init-powersaver
 #
 # Initialise PowerSaver
 #
-# Copyright (C) 2022-2025 Alan Doyle
+# Copyright (C) 2022-2026 Alan Doyle
 #
 # https://github.com/alandoyle/helper-scripts/
 #
