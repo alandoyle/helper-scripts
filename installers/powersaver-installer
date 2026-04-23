@@ -42,7 +42,7 @@ apt install curl powertop -y
 #
 # Download latest AutoAPSM script
 #
-curl https://raw.githubusercontent.com/notthebee/AutoASPM/refs/heads/main/autoaspm.py -so /usr/local/bin/autoaspm.py
+curl https://git.notthebe.ee/notthebee/AutoASPM/raw/branch/main/pkgs/autoaspm.py -so /usr/local/bin/autoaspm.py
 
 ################################################################################# Create scripts
 #
